@@ -262,99 +262,41 @@ export default function Navbar() {
                   className="fixed inset-0 z-40" 
                   onClick={() => setUserDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-80 glass-dropdown rounded-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl space-y-2">
+                <div className="absolute right-0 mt-2 w-72 glass-dropdown rounded-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl space-y-1.5">
                   
-                  {/* SECTION 1: 👑 Founder & Admin Section */}
-                  <div className="p-2.5 rounded-xl bg-amber-500/[0.08] border border-amber-500/25 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300 flex items-center gap-1">
-                        👑 Executive & Admin Access
-                      </span>
-                      {isAdminAuthenticated ? (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          Unlocked
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          Protected
-                        </span>
-                      )}
+                  {/* Header */}
+                  <div className="px-2.5 py-1.5 border-b border-white/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Workstation Switcher</p>
+                      <p className="text-xs text-slate-300">Select your active workspace</p>
                     </div>
-
-                    {users.filter(u => u.role === 'admin').map(admin => (
-                      <div 
-                        key={admin.id} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-lg">{admin.avatar}</span>
-                          <div className="min-w-0">
-                            <p className="font-bold text-white text-xs truncate">{admin.name}</p>
-                            <p className="text-[10px] text-slate-400 truncate">{admin.designation || 'Founder'}</p>
-                          </div>
-                        </div>
-
-                        {!isAdminAuthenticated ? (
-                          <button
-                            onClick={() => {
-                              setIsAdminModalOpen(true);
-                              setUserDropdownOpen(false);
-                            }}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] hover:bg-amber-400 transition-all cursor-pointer shadow-sm"
-                          >
-                            <Lock className="w-3 h-3" />
-                            <span>Unlock</span>
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => {
-                                setCurrentUser(admin);
-                                setIsTeamModalOpen(true);
-                                setUserDropdownOpen(false);
-                              }}
-                              className="px-2 py-1 rounded-lg bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-semibold text-[10px] border border-brand-500/30"
-                            >
-                              Team Panel
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
                   </div>
 
-                  {/* SECTION 2: 🎨 Design Team Workstations */}
-                  <div>
-                    <div className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center justify-between">
-                      <span>🎨 Design Team Workstations</span>
-                      <span className="text-[9px] text-slate-500">Click to switch</span>
-                    </div>
-
-                    <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
-                      {users.filter(u => u.role !== 'admin').map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => {
-                            setCurrentUser(u);
-                            setUserDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
-                            currentUser?.id === u.id 
-                              ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' 
-                              : 'hover:bg-white/5 text-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            <span className="text-base flex-shrink-0">{u.avatar}</span>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-white leading-tight truncate">{u.name}</p>
-                              <p className="text-[10px] text-slate-400 font-medium truncate">{u.designation || u.role}</p>
-                            </div>
+                  {/* Unified Team Member List */}
+                  <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
+                    {users.map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => {
+                          setCurrentUser(u);
+                          setUserDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                          currentUser?.id === u.id 
+                            ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30 font-medium' 
+                            : 'hover:bg-white/5 text-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          <span className="text-base flex-shrink-0">{u.avatar}</span>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-white leading-tight truncate">{u.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium truncate">{u.designation || u.role}</p>
                           </div>
-                          <Palette className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
-                        </button>
-                      ))}
-                    </div>
+                        </div>
+                        <Palette className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
+                      </button>
+                    ))}
                   </div>
 
                 </div>
