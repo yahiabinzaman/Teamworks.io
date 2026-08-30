@@ -200,16 +200,34 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Admin Manage Team Button (When in Admin Mode) */}
-          {currentUser?.role === 'admin' && (
+          {/* Dedicated Admin Portal Button */}
+          {!isAdminAuthenticated ? (
             <button
-              onClick={() => setIsTeamModalOpen(true)}
-              title="Manage Designers & Team Roster"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 rounded-xl transition-all cursor-pointer"
+              onClick={() => setIsAdminModalOpen(true)}
+              title="Log in to ColorLab Admin Panel"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl transition-all cursor-pointer shadow-sm"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Team Settings</span>
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Admin Login</span>
             </button>
+          ) : (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsTeamModalOpen(true)}
+                title="Manage Team & Studio Settings"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-xl transition-all cursor-pointer shadow-sm"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">👑 Admin Panel</span>
+              </button>
+              <button
+                onClick={() => logoutAdmin()}
+                title="Lock Admin Mode"
+                className="p-1.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 border border-rose-500/20 transition-all cursor-pointer"
+              >
+                <Lock className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
 
           {/* New Task Button */}
@@ -244,77 +262,101 @@ export default function Navbar() {
                   className="fixed inset-0 z-40" 
                   onClick={() => setUserDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-72 glass-dropdown rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl">
-                  <div className="px-3 py-2 border-b border-white/10 mb-1 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Workstation Switcher</p>
-                      <p className="text-xs text-slate-300">Select your active workstation</p>
+                <div className="absolute right-0 mt-2 w-80 glass-dropdown rounded-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl space-y-2">
+                  
+                  {/* SECTION 1: 👑 Founder & Admin Section */}
+                  <div className="p-2.5 rounded-xl bg-amber-500/[0.08] border border-amber-500/25 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300 flex items-center gap-1">
+                        👑 Executive & Admin Access
+                      </span>
+                      {isAdminAuthenticated ? (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          Unlocked
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          Protected
+                        </span>
+                      )}
                     </div>
-                    {isAdminAuthenticated && (
-                      <button
-                        onClick={() => {
-                          logoutAdmin();
-                          setUserDropdownOpen(false);
-                        }}
-                        title="Lock Admin Mode"
-                        className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
-                      >
-                        <Lock className="w-3 h-3" />
-                        <span>Lock</span>
-                      </button>
-                    )}
-                  </div>
 
-                  <div className="space-y-1 max-h-72 overflow-y-auto">
-                    {users.map((u) => (
-                      <button
-                        key={u.id}
-                        onClick={() => {
-                          setCurrentUser(u);
-                          setUserDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
-                          currentUser?.id === u.id 
-                            ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' 
-                            : 'hover:bg-white/5 text-slate-300'
-                        }`}
+                    {users.filter(u => u.role === 'admin').map(admin => (
+                      <div 
+                        key={admin.id} 
+                        className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <span className="text-base flex-shrink-0">{u.avatar}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-lg">{admin.avatar}</span>
                           <div className="min-w-0">
-                            <p className="font-semibold text-white leading-tight truncate">{u.name}</p>
-                            <p className="text-[10px] text-slate-400 font-medium truncate">{u.designation || u.role}</p>
+                            <p className="font-bold text-white text-xs truncate">{admin.name}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{admin.designation || 'Founder'}</p>
                           </div>
                         </div>
-                        {u.role === 'admin' ? (
-                          <div className="flex items-center gap-1">
-                            {isAdminAuthenticated ? (
-                              <Unlock className="w-3.5 h-3.5 text-emerald-400" />
-                            ) : (
-                              <Lock className="w-3.5 h-3.5 text-amber-400" />
-                            )}
-                          </div>
+
+                        {!isAdminAuthenticated ? (
+                          <button
+                            onClick={() => {
+                              setIsAdminModalOpen(true);
+                              setUserDropdownOpen(false);
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] hover:bg-amber-400 transition-all cursor-pointer shadow-sm"
+                          >
+                            <Lock className="w-3 h-3" />
+                            <span>Unlock</span>
+                          </button>
                         ) : (
-                          <Palette className="w-3.5 h-3.5 text-brand-400" />
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setCurrentUser(admin);
+                                setIsTeamModalOpen(true);
+                                setUserDropdownOpen(false);
+                              }}
+                              className="px-2 py-1 rounded-lg bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-semibold text-[10px] border border-brand-500/30"
+                            >
+                              Team Panel
+                            </button>
+                          </div>
                         )}
-                      </button>
+                      </div>
                     ))}
                   </div>
 
-                  {currentUser?.role === 'admin' && (
-                    <div className="pt-2 mt-1 border-t border-white/10">
-                      <button
-                        onClick={() => {
-                          setIsTeamModalOpen(true);
-                          setUserDropdownOpen(false);
-                        }}
-                        className="w-full py-1.5 px-3 rounded-xl bg-brand-500/15 hover:bg-brand-500/25 text-brand-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                      >
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>Manage Team Designers</span>
-                      </button>
+                  {/* SECTION 2: 🎨 Design Team Workstations */}
+                  <div>
+                    <div className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center justify-between">
+                      <span>🎨 Design Team Workstations</span>
+                      <span className="text-[9px] text-slate-500">Click to switch</span>
                     </div>
-                  )}
+
+                    <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+                      {users.filter(u => u.role !== 'admin').map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => {
+                            setCurrentUser(u);
+                            setUserDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                            currentUser?.id === u.id 
+                              ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' 
+                              : 'hover:bg-white/5 text-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <span className="text-base flex-shrink-0">{u.avatar}</span>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-white leading-tight truncate">{u.name}</p>
+                              <p className="text-[10px] text-slate-400 font-medium truncate">{u.designation || u.role}</p>
+                            </div>
+                          </div>
+                          <Palette className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               </>
             )}
