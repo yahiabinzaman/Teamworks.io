@@ -2,11 +2,12 @@ import Tesseract from 'tesseract.js';
 
 /**
  * Perform real OCR on image (supports English + Bengali + numbers)
- * and extract actionable WhatsApp client requirements.
+ * Filters out WhatsApp UI junk (timestamps, status, battery, buttons)
+ * and formats only meaningful design instructions.
  */
 export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
   try {
-    if (onProgress) onProgress('Scanning screenshot pixels...');
+    if (onProgress) onProgress('Scanning screenshot text...');
 
     const result = await Tesseract.recognize(
       imageSrc,
@@ -15,7 +16,7 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
         logger: (m) => {
           if (m.status === 'recognizing text' && onProgress) {
             const pct = Math.round((m.progress || 0) * 100);
-            onProgress(`Reading text from WhatsApp screenshot: ${pct}%`);
+            onProgress(`Scanning image: ${pct}%`);
           }
         }
       }
@@ -26,93 +27,95 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
       return {
         success: false,
         rawText: '',
-        structuredNotes: '⚠️ No clear text detected in screenshot. Please ensure the screenshot is clear or paste text directly.'
+        structuredNotes: '⚠️ No readable text detected in screenshot.'
       };
     }
 
-    // Process and clean raw lines
-    const lines = rawText
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 2 && !l.match(/^[0-9:\sAPMapm\/]+$/)); // filter empty/timestamp only lines
+    // WhatsApp UI / noise blacklist patterns
+    const noisePatterns = [
+      /^[0-9:\sAPMapm.\/,-]+$/, // pure timestamps/numbers like "11:17", "5.37 pm"
+      /^(today|yesterday|online|typing|last seen|forwarded|message|chat|status|calls|search|whatsapp)$/i,
+      /^(type a message|send|camera|gallery|audio|location|contact|document)$/i,
+      /^[0-9]{1,3}%\s*(battery)?/i, // "98%", "100%"
+      /^(5g|4g|lte|volte|wifi|kb\/s|mb\/s|am|pm)$/i,
+      /^[^\w\u0980-\u09FF]+$/ // pure punctuation/symbols
+    ];
 
-    // Smart Specification Detectors
+    // Process and filter raw lines
+    const rawLines = rawText.split('\n');
+    const validLines = [];
+
+    for (let line of rawLines) {
+      // Remove leading/trailing quotes, ticks, timestamps
+      line = line
+        .replace(/^[\s\-_~|=>✓•*#]+/, '')
+        .replace(/[\s\-_~|=>✓•*#]+$/, '')
+        .replace(/\b\d{1,2}:\d{2}\s?(am|pm)?\b/gi, '') // strip embedded times like "11:17 am"
+        .trim();
+
+      if (line.length < 3) continue;
+
+      const isNoise = noisePatterns.some(p => p.test(line));
+      if (!isNoise) {
+        // avoid duplicate lines
+        if (!validLines.includes(line)) {
+          validLines.push(line);
+        }
+      }
+    }
+
+    // Detect specifications
+    const dimRegex = /(\d{2,4}\s?[xX×*]\s?\d{2,4}\s?(mm|cm|px|inch|in)?)|(A[3456]|Legal|Letter)|(\d+\s?(mm|cm|inch)\s?spine)/gi;
+    const colorRegex = /(gold\s?foil|silver\s?foil|spot\s?uv|emboss|deboss|navy\s?blue|royal\s?blue|matt\s?lam|gloss\s?lam|leather\s?texture|cmyk|pantone)/gi;
+
     const detectedDimensions = [];
-    const detectedColors = [];
-    const detectedDates = [];
-    const actionPoints = [];
+    const detectedEffects = [];
 
-    // Regex matchers
-    const dimRegex = /(\d{2,4}\s?[xX×*]\s?\d{2,4}\s?(mm|cm|px|inch|in)?)|(A[3456]|Legal|Letter|Custom)|(\d+\s?(mm|cm|inch)\s?spine)/gi;
-    const colorRegex = /(gold\s?foil|silver\s?foil|spot\s?uv|emboss|deboss|navy|blue|black|red|green|cmyk|pantone|matt|gloss|leather)/gi;
-    const dateRegex = /(today|tomorrow|urgent|urgent|asap|deadline|delivery|আজকে|কালকে|জরুরি|\d{1,2}[:.]\d{2}\s?(am|pm)?|\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})/gi;
-
-    lines.forEach(line => {
-      // Find dimensions
+    validLines.forEach(line => {
       const dimMatch = line.match(dimRegex);
       if (dimMatch) detectedDimensions.push(...dimMatch);
 
-      // Find colors/materials
       const colMatch = line.match(colorRegex);
-      if (colMatch) detectedColors.push(...colMatch);
-
-      // Find dates
-      const dateMatch = line.match(dateRegex);
-      if (dateMatch) detectedDates.push(...dateMatch);
-
-      // Clean line for action point
-      if (line.length > 5 && !line.startsWith('http')) {
-        actionPoints.push(line);
-      }
+      if (colMatch) detectedEffects.push(...colMatch);
     });
 
-    // Unique specs
     const uniqueDims = Array.from(new Set(detectedDimensions));
-    const uniqueColors = Array.from(new Set(detectedColors));
-    const uniqueDates = Array.from(new Set(detectedDates));
+    const uniqueEffects = Array.from(new Set(detectedEffects));
 
-    // Build Formatted Output
-    let structuredNotes = `📸 [WHATSAPP SCREENSHOT TEXT DETECTED]:\n\n`;
+    // Build Clean, Curated Instructions
+    let structuredNotes = `📌 Client Requirements:\n`;
 
-    if (uniqueDims.length > 0) {
-      structuredNotes += `📏 Detected Dimensions / Sizes: ${uniqueDims.join(', ')}\n`;
-    }
-    if (uniqueColors.length > 0) {
-      structuredNotes += `🎨 Detected Effects / Materials: ${uniqueColors.join(', ')}\n`;
-    }
-    if (uniqueDates.length > 0) {
-      structuredNotes += `⏰ Detected Timeline / Urgency: ${uniqueDates.join(', ')}\n`;
-    }
-
-    if (uniqueDims.length > 0 || uniqueColors.length > 0 || uniqueDates.length > 0) {
-      structuredNotes += `\n`;
-    }
-
-    structuredNotes += `📝 Key Instructions from WhatsApp:\n`;
-    const topActionPoints = actionPoints.slice(0, 10);
-    if (topActionPoints.length > 0) {
-      topActionPoints.forEach(pt => {
+    if (validLines.length > 0) {
+      validLines.slice(0, 8).forEach(pt => {
         structuredNotes += `• ${pt}\n`;
       });
     } else {
-      structuredNotes += `• ${rawText.replace(/\n+/g, ' ')}\n`;
+      structuredNotes += `• ${rawText.replace(/\n+/g, ' ').slice(0, 150)}\n`;
     }
 
-    structuredNotes += `\n💬 Full Recognized Text:\n"${rawText.replace(/\n{2,}/g, '\n')}"`;
+    if (uniqueDims.length > 0 || uniqueEffects.length > 0) {
+      structuredNotes += `\n📏 Specifications:\n`;
+      if (uniqueDims.length > 0) {
+        structuredNotes += `• Size: ${uniqueDims.join(', ')}\n`;
+      }
+      if (uniqueEffects.length > 0) {
+        structuredNotes += `• Finish & Effects: ${uniqueEffects.join(', ')}\n`;
+      }
+    }
 
     return {
       success: true,
       rawText,
-      structuredNotes,
+      structuredNotes: structuredNotes.trim(),
       detectedDimensions: uniqueDims.join(', '),
-      detectedColors: uniqueColors.join(', ')
+      detectedColors: uniqueEffects.join(', ')
     };
   } catch (err) {
     console.error('OCR Extraction error:', err);
     return {
       success: false,
       rawText: '',
-      structuredNotes: `⚠️ OCR Processing Note: Could not parse text automatically (${err.message}). The screenshot is saved as visual reference.`
+      structuredNotes: `⚠️ Could not parse text automatically. Please refer to attached screenshot.`
     };
   }
 }
