@@ -6,6 +6,7 @@ import {
   Loader2, Maximize2, Paperclip, CheckSquare, Plus, ScanText, FolderOpen
 } from 'lucide-react';
 import { extractWhatsAppTextFromImage } from '../utils/ocrExtractor';
+import FileBrowserModal from './FileBrowserModal';
 
 export default function TaskModal() {
   const { 
@@ -24,6 +25,8 @@ export default function TaskModal() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [ocrProgressText, setOcrProgressText] = useState('');
   const [previewImageModal, setPreviewImageModal] = useState(null);
+  const [isFileBrowserOpen, setIsFileBrowserOpen] = useState(false);
+  const [fileBrowserTarget, setFileBrowserTarget] = useState('serverFolder');
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -206,24 +209,47 @@ export default function TaskModal() {
 
   const handleBrowseFolder = async () => {
     if (window.electronAPI && window.electronAPI.selectFolder) {
-      const selected = await window.electronAPI.selectFolder();
-      if (selected) {
-        setFormData(prev => ({ ...prev, serverFolder: selected }));
-      }
-    } else {
-      const fallback = prompt('Enter or paste exact folder path on your Mac or NAS (e.g. /Volumes/COLOR LAB - NAS/ProjectName):', formData.serverFolder || '/Volumes/COLOR LAB - NAS');
-      if (fallback !== null && fallback.trim()) {
-        setFormData(prev => ({ ...prev, serverFolder: fallback.trim() }));
+      try {
+        const selected = await window.electronAPI.selectFolder();
+        if (selected) {
+          setFormData(prev => ({ ...prev, serverFolder: selected }));
+          return;
+        }
+      } catch (e) {
+        console.warn('Native folder picker note:', e);
       }
     }
+    // Open visual explorer modal
+    setFileBrowserTarget('serverFolder');
+    setIsFileBrowserOpen(true);
   };
 
   const handleBrowseWorkingFile = async () => {
     if (window.electronAPI && window.electronAPI.selectFile) {
-      const selected = await window.electronAPI.selectFile();
-      if (selected) {
-        setFormData(prev => ({ ...prev, workingFile: selected }));
+      try {
+        const selected = await window.electronAPI.selectFile();
+        if (selected) {
+          setFormData(prev => ({ ...prev, workingFile: selected }));
+          return;
+        }
+      } catch (e) {
+        console.warn('Native file picker note:', e);
       }
+    }
+    // Open visual explorer modal
+    setFileBrowserTarget('workingFile');
+    setIsFileBrowserOpen(true);
+  };
+
+  const handleFileBrowserSelect = (selectedPath, item) => {
+    if (fileBrowserTarget === 'workingFile') {
+      setFormData(prev => ({ ...prev, workingFile: selectedPath }));
+    } else {
+      setFormData(prev => ({ 
+        ...prev, 
+        serverFolder: item && item.isDirectory ? selectedPath : (selectedPath.includes('/') ? selectedPath.substring(0, selectedPath.lastIndexOf('/')) : selectedPath),
+        workingFile: item && !item.isDirectory ? selectedPath : prev.workingFile
+      }));
     }
   };
 
@@ -746,6 +772,14 @@ export default function TaskModal() {
           </div>
         </div>
       )}
+      {/* Visual File & Folder Explorer Modal */}
+      <FileBrowserModal
+        isOpen={isFileBrowserOpen}
+        onClose={() => setIsFileBrowserOpen(false)}
+        onSelect={handleFileBrowserSelect}
+        initialPath={formData.serverFolder || '/Volumes/COLOR LAB - NAS'}
+        mode={fileBrowserTarget}
+      />
     </div>
   );
 }

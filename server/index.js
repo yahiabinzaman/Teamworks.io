@@ -174,8 +174,96 @@ app.post('/api/open-path', (req, res) => {
         rawError: err.message 
       });
     }
-    res.json({ success: true, message: `Opened: ${filePath}` });
-  });
+// 7. Visual File & Folder Explorer API (Mac /Volumes & Local Drives)
+app.get('/api/browse-fs', (req, res) => {
+  let targetPath = req.query.path ? req.query.path.trim() : '';
+  const isMac = os.platform() === 'darwin';
+
+  try {
+    // If no path requested, return root shortcuts & mounted volumes
+    if (!targetPath) {
+      const roots = [];
+      if (isMac && fs.existsSync('/Volumes')) {
+        const vols = fs.readdirSync('/Volumes').filter(v => !v.startsWith('.'));
+        vols.forEach(v => {
+          roots.push({
+            name: v,
+            path: `/Volumes/${v}`,
+            isDirectory: true,
+            isVolume: true
+          });
+        });
+      }
+
+      // Add home directory shortcuts
+      const home = os.homedir();
+      roots.push(
+        { name: 'Downloads', path: path.join(home, 'Downloads'), isDirectory: true },
+        { name: 'Desktop', path: path.join(home, 'Desktop'), isDirectory: true },
+        { name: 'Documents', path: path.join(home, 'Documents'), isDirectory: true }
+      );
+
+      return res.json({
+        currentPath: '',
+        parentPath: '',
+        items: roots
+      });
+    }
+
+    if (!fs.existsSync(targetPath)) {
+      return res.status(404).json({ error: 'Path does not exist', items: [] });
+    }
+
+    const stat = fs.statSync(targetPath);
+    if (!stat.isDirectory()) {
+      return res.json({
+        currentPath: targetPath,
+        parentPath: path.dirname(targetPath),
+        items: [],
+        isFile: true
+      });
+    }
+
+    const entries = fs.readdirSync(targetPath, { withFileTypes: true });
+    const items = [];
+
+    entries.forEach(e => {
+      if (e.name.startsWith('.')) return; // skip hidden files
+
+      const fullItemPath = path.join(targetPath, e.name);
+      try {
+        const isDir = e.isDirectory();
+        const ext = path.extname(e.name).toLowerCase();
+        
+        items.push({
+          name: e.name,
+          path: fullItemPath,
+          isDirectory: isDir,
+          extension: ext
+        });
+      } catch (err) {
+        // Skip unreadable files
+      }
+    });
+
+    // Sort: directories first, then alphabetically
+    items.sort((a, b) => {
+      if (a.isDirectory && !b.isDirectory) return -1;
+      if (!a.isDirectory && b.isDirectory) return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    const parentPath = path.dirname(targetPath);
+
+    res.json({
+      currentPath: targetPath,
+      parentPath: parentPath !== targetPath ? parentPath : '',
+      items
+    });
+  } catch (err) {
+    console.error('File browse error:', err);
+    res.status(500).json({ error: err.message, items: [] });
+  }
 });
 
 const __filename = fileURLToPath(import.meta.url);
