@@ -22,12 +22,15 @@ function createWindow() {
     }
   });
 
-  const isDev = !app.isPackaged;
-  const startUrl = isDev 
-    ? 'http://localhost:3000' 
-    : `file://${path.join(__dirname, '../dist/index.html')}`;
-
-  mainWindow.loadURL(startUrl);
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:3000').catch(() => {
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    });
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
 
   // Open external links in default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
