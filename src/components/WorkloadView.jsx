@@ -19,7 +19,7 @@ export default function WorkloadView() {
       {/* Team Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {designers.map((user) => {
-          const userTasks = tasks.filter(t => t.assignedId === user.id || t.assignedTo?.includes(user.name.split(' ')[0]));
+          const userTasks = tasks.filter(t => t.assignedId === user.id || t.assignedTo === user.name || t.assignedTo?.startsWith(user.name.split(' ')[0] + ' ' + (user.name.split(' ')[1] || '')));
           const activeTasks = userTasks.filter(t => t.status !== 'approved' && t.status !== 'delivered');
           const completedTasks = userTasks.filter(t => t.status === 'approved' || t.status === 'delivered');
           const inReviewTasks = userTasks.filter(t => t.status === 'internal_review' || t.status === 'client_review');

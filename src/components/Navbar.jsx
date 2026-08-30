@@ -44,37 +44,39 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 glass-panel">
-      <div className="max-w-[1700px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1750px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-3">
         
-        {/* Left: Brand & Status */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="ColorLab Official Logo" 
-              className="h-10 w-10 rounded-2xl object-cover shadow-glow border border-white/20 hover:scale-105 transition-transform"
-            />
+        {/* Left: Brand Logo & LAN Live Sync */}
+        <div className="flex items-center gap-3 md:gap-5 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 p-0.5 shadow-glow flex items-center justify-center overflow-hidden flex-shrink-0">
+              <img 
+                src="./logo.png" 
+                alt="ColorLab Official Logo" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-white text-base">ColorLab</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">
-                  Works
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold tracking-tight text-white text-sm">ColorLab</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                  WORKS
                 </span>
               </div>
               <button
                 onClick={() => setIsSettingsOpen(true)}
-                title="Click to configure Central Server IP"
-                className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-white transition-colors cursor-pointer group"
+                title="Click to configure 24/7 Cloud or LAN Server"
+                className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-white transition-colors cursor-pointer group"
               >
                 <span className={`inline-block w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
-                <span>{isConnected ? 'LAN Sync Active' : 'Offline'}</span>
+                <span className="font-medium">{isConnected ? '24/7 Synced' : 'Connecting...'}</span>
                 <span className="text-[9px] opacity-0 group-hover:opacity-100">⚙️</span>
               </button>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/5">
+          <nav className="hidden xl:flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -82,30 +84,30 @@ export default function Navbar() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                     isActive 
-                      ? 'bg-brand-500 text-white shadow-sm' 
+                      ? 'bg-brand-500 text-white shadow-sm font-semibold' 
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Center: Search */}
-        <div className="flex-1 max-w-md hidden md:block">
+        {/* Center: Search Bar */}
+        <div className="flex-1 max-w-sm mx-2 hidden sm:block">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks, clients, projects, or file names (⌘K)..."
-              className="w-full bg-white/[0.05] border border-white/10 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.08] transition-all"
+              placeholder="Search tasks, clients, or files (⌘K)..."
+              className="w-full bg-white/[0.05] border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white/[0.08] transition-all"
             />
           </div>
         </div>

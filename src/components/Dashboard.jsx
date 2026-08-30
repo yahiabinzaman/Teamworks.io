@@ -196,7 +196,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {users.filter(u => u.role !== 'admin').map((user) => {
-              const activeCount = tasks.filter(t => (t.assignedId === user.id || t.assignedTo?.includes(user.name.split(' ')[0])) && t.status !== 'approved' && t.status !== 'delivered').length;
+              const activeCount = tasks.filter(t => (t.assignedId === user.id || t.assignedTo === user.name || t.assignedTo?.startsWith(user.name.split(' ')[0] + ' ' + (user.name.split(' ')[1] || ''))) && t.status !== 'approved' && t.status !== 'delivered').length;
               const loadPercent = Math.min(100, Math.round((activeCount / user.maxLoad) * 100));
               const isOverloaded = loadPercent >= 80;
 

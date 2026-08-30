@@ -224,11 +224,25 @@ export default function KanbanBoard() {
                             <ChevronLeft className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Open in Photoshop */}
+                          {/* WhatsApp Chat */}
+                          <button
+                            onClick={() => {
+                              const matchedClient = clients.find(c => c.name === task.client || c.id === task.clientId);
+                              const phone = matchedClient?.whatsapp || matchedClient?.phone || '8801700000001';
+                              const message = encodeURIComponent(`Hello ${task.client}, ColorLab Update: Your design "${task.title}" status is currently "${task.status}".`);
+                              window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
+                            }}
+                            title="1-Click WhatsApp Conversation"
+                            className="p-1 text-slate-400 hover:text-emerald-400 rounded transition-colors"
+                          >
+                            <span className="text-xs">💬</span>
+                          </button>
+
+                          {/* Open in Photoshop / Illustrator */}
                           <button
                             onClick={() => openLocalPath(task.workingFile || task.serverFolder)}
                             title="Open in Photoshop / Illustrator"
-                            className="p-1 text-slate-400 hover:text-cyan-300 rounded"
+                            className="p-1 text-slate-400 hover:text-cyan-300 rounded transition-colors"
                           >
                             <FileCode className="w-3.5 h-3.5" />
                           </button>
@@ -236,8 +250,8 @@ export default function KanbanBoard() {
                           {/* Open Folder */}
                           <button
                             onClick={() => openLocalPath(task.serverFolder)}
-                            title="Open Project Folder"
-                            className="p-1 text-slate-400 hover:text-white rounded"
+                            title="Open Project Folder on NAS"
+                            className="p-1 text-slate-400 hover:text-white rounded transition-colors"
                           >
                             <FolderOpen className="w-3.5 h-3.5" />
                           </button>
@@ -247,7 +261,7 @@ export default function KanbanBoard() {
                             onClick={() => moveTask(task.id, task.status, 1)}
                             disabled={col.id === 'delivered'}
                             title="Move Right"
-                            className="p-1 text-slate-400 hover:text-white disabled:opacity-20 rounded"
+                            className="p-1 text-slate-400 hover:text-white disabled:opacity-20 rounded transition-colors"
                           >
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>

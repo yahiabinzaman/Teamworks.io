@@ -19,7 +19,7 @@ export default function ClientsView() {
   const openWhatsApp = (phone, clientName) => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const message = encodeURIComponent(`Hello ${clientName}, greetings from ColorLab! Regarding your Diary 2027 design project...`);
-    const url = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${message}`;
+    const url = `https://wa.me/${cleanPhone}?text=${message}`;
     window.open(url, '_blank');
     showToast(`📱 Opening WhatsApp chat for ${clientName}`, 'info');
   };
