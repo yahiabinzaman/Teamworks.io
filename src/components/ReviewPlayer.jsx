@@ -30,7 +30,8 @@ export default function ReviewPlayer() {
     addVersion, 
     updateTask, 
     openLocalPath,
-    showToast 
+    showToast,
+    theme
   } = useApp();
 
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(0);
@@ -236,16 +237,16 @@ export default function ReviewPlayer() {
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           
           {/* Visual Canvas Area */}
-          <div className="flex-1 relative bg-[#080a0e] flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden select-none">
+          <div className={`flex-1 relative ${theme === 'light' ? 'bg-[#e2e8f0]' : 'bg-[#080a0e]'} flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden select-none transition-colors duration-200`}>
             
             {/* Canvas Toolbar Instructions */}
-            <div className="absolute top-4 left-6 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs text-slate-300">
+            <div className="absolute top-4 left-6 z-20 flex items-center gap-2 glass-dropdown px-3.5 py-1.5 rounded-xl border border-white/10 text-xs text-slate-200 shadow-lg">
               <MessageSquarePlus className="w-4 h-4 text-brand-400" />
               <span>Click anywhere on the artwork to drop a <b>Pin Comment</b></span>
             </div>
 
             {/* Zoom Controls */}
-            <div className="absolute top-4 right-6 z-20 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-xl border border-white/10">
+            <div className="absolute top-4 right-6 z-20 flex items-center gap-1 glass-dropdown p-1 rounded-xl border border-white/10 shadow-lg">
               <button 
                 onClick={() => setZoomLevel(prev => Math.max(0.6, prev - 0.2))}
                 className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"

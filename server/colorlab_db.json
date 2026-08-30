@@ -3346,7 +3346,7 @@
       "assignedTo": "Yahia Bin Zaman",
       "assignedId": "u2",
       "priority": "urgent",
-      "status": "internal_review",
+      "status": "approved",
       "deadline": "2026-08-31T17:00",
       "dimensions": "Diary Standard (A5 / 148 × 210 mm)",
       "format": "Illustrator (.AI) + Spot Gold Foil Layer",
@@ -3455,6 +3455,12 @@
     }
   ],
   "activities": [
+    {
+      "id": "a_1788114401829",
+      "time": "12:26 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Front & Back Cover Design\" status to APPROVED"
+    },
     {
       "id": "a1",
       "time": "10:00 AM",
