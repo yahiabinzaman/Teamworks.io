@@ -151,12 +151,13 @@ for (const name of allArchiveRawFolders) {
 export const initialClients = allClientsMerged;
 
 export const initialUsers = [
-  { id: 'u1', name: 'ColorLab Admin', role: 'admin', avatar: '👨‍💼', email: 'admin@colorlab.local', activeTasks: 3, maxLoad: 8 },
-  { id: 'u2', name: 'Yahia (Lead Designer)', role: 'designer', avatar: '🎨', email: 'yahia@colorlab.local', activeTasks: 3, maxLoad: 5 },
-  { id: 'u3', name: 'Designer 01 (Nafis)', role: 'designer', avatar: '🧑‍💻', email: 'nafis@colorlab.local', activeTasks: 4, maxLoad: 5 },
-  { id: 'u4', name: 'Designer 02 (Tariq)', role: 'designer', avatar: '🧑‍🎨', email: 'tariq@colorlab.local', activeTasks: 2, maxLoad: 5 },
-  { id: 'u5', name: 'Designer 03 (Sabbir)', role: 'designer', avatar: '👨‍🎨', email: 'sabbir@colorlab.local', activeTasks: 4, maxLoad: 5 },
-  { id: 'u6', name: 'Motion/Editor (Arman)', role: 'editor', avatar: '🎬', email: 'arman@colorlab.local', activeTasks: 1, maxLoad: 4 }
+  { id: 'u1', name: 'Husain Mahmud', role: 'admin', designation: 'Founder & Executive Director', avatar: '👑', email: 'husain@colorlab.local', activeTasks: 0, maxLoad: 10 },
+  { id: 'u2', name: 'Yahia Bin Zaman', role: 'designer', designation: 'Managing Director & Lead Designer', avatar: '🎨', email: 'yahia@colorlab.local', activeTasks: 3, maxLoad: 8 },
+  { id: 'u3', name: 'Nasrullah', role: 'designer', designation: 'Senior Visual & Layout Designer', avatar: '🧑‍💻', email: 'nasrullah@colorlab.local', activeTasks: 2, maxLoad: 6 },
+  { id: 'u4', name: 'Shuvo', role: 'designer', designation: 'Senior Designer & Print Production Expert', avatar: '🖨️', email: 'shuvo@colorlab.local', activeTasks: 2, maxLoad: 6 },
+  { id: 'u5', name: 'Amin', role: 'designer', designation: 'Graphic Designer & Branding Specialist', avatar: '👨‍🎨', email: 'amin@colorlab.local', activeTasks: 1, maxLoad: 5 },
+  { id: 'u6', name: 'Kawsar Ahmad', role: 'designer', designation: 'Graphic Designer & Vector Artist', avatar: '⚡', email: 'kawsar@colorlab.local', activeTasks: 1, maxLoad: 5 },
+  { id: 'u7', name: 'Hasan', role: 'assistant', designation: 'Production Assistant & Studio Support', avatar: '🛠️', email: 'hasan@colorlab.local', activeTasks: 0, maxLoad: 4 }
 ];
 
 const sampleArtwork1 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
