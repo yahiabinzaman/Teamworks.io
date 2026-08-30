@@ -3,8 +3,9 @@ import { useApp } from '../context/AppContext';
 import { 
   X, Sparkles, FolderSync, Calendar, User, Layers, Tag, 
   FileText, Trash2, Image, Upload, Eye, CheckCircle2, 
-  Loader2, Maximize2, Paperclip, CheckSquare, Plus
+  Loader2, Maximize2, Paperclip, CheckSquare, Plus, ScanText
 } from 'lucide-react';
+import { extractWhatsAppTextFromImage } from '../utils/ocrExtractor';
 
 export default function TaskModal() {
   const { 
@@ -21,6 +22,7 @@ export default function TaskModal() {
   const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [ocrProgressText, setOcrProgressText] = useState('');
   const [previewImageModal, setPreviewImageModal] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -164,30 +166,42 @@ export default function TaskModal() {
     }));
   };
 
-  const autoExtractFromScreenshot = (imgBase64) => {
-    setIsAnalyzing(true);
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      
-      const clientName = formData.client || 'Client';
-      const existingBrief = formData.brief ? formData.brief.trim() + '\n\n' : '';
-      
-      const smartExtractedNotes = `${existingBrief}📋 [WHATSAPP REQUIREMENTS & ACTION NOTES]:
-• Client: ${clientName}
-• Project Scope: ${formData.title || 'Diary 2027 Production Design'}
-• Target Dimensions: ${formData.dimensions || 'A5 Standard (148 × 210 mm)'}
-• Preferred Format: ${formData.format || 'Illustrator (.AI)'}
-• Key Instructions Extracted:
-  ✓ Check Spot Gold Foil / Emboss die plate layer separation
-  ✓ Follow WhatsApp reference styling & typography guidelines
-  ✓ Create Proof v01 and submit for client approval
-  ✓ Central Server Folder: ${formData.serverFolder || 'NAS / 990 Pro SSD'}`;
+  const autoExtractFromScreenshot = async (imgBase64) => {
+    const targetImage = imgBase64 || (formData.screenshots && formData.screenshots.length > 0 ? formData.screenshots[formData.screenshots.length - 1].url : null);
+    
+    if (!targetImage) {
+      alert('Please paste (⌘+V) or browse a WhatsApp screenshot first!');
+      return;
+    }
 
-      setFormData(prev => ({
-        ...prev,
-        brief: smartExtractedNotes
-      }));
-    }, 750);
+    setIsAnalyzing(true);
+    setOcrProgressText('Scanning screenshot text...');
+    
+    try {
+      const ocrResult = await extractWhatsAppTextFromImage(targetImage, (status) => {
+        setOcrProgressText(status);
+      });
+
+      if (ocrResult.success && ocrResult.rawText) {
+        const existingBrief = formData.brief ? formData.brief.trim() + '\n\n' : '';
+        setFormData(prev => ({
+          ...prev,
+          brief: existingBrief + ocrResult.structuredNotes,
+          dimensions: (prev.dimensions === 'Diary Standard (A5 / 148 × 210 mm)' && ocrResult.detectedDimensions) ? ocrResult.detectedDimensions : prev.dimensions
+        }));
+      } else {
+        const existingBrief = formData.brief ? formData.brief.trim() + '\n\n' : '';
+        setFormData(prev => ({
+          ...prev,
+          brief: existingBrief + (ocrResult.structuredNotes || '⚠️ No readable text found in image.')
+        }));
+      }
+    } catch (err) {
+      console.error('OCR Extraction error:', err);
+    } finally {
+      setIsAnalyzing(false);
+      setOcrProgressText('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -516,13 +530,13 @@ export default function TaskModal() {
               >
                 {isAnalyzing ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>AI Extracting...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-400" />
+                    <span className="text-[10px] max-w-[200px] truncate">{ocrProgressText || 'Reading Screenshot...'}</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-brand-400" />
-                    <span>✨ Auto-Extract Key Actions</span>
+                    <ScanText className="w-3.5 h-3.5 text-brand-400" />
+                    <span>✨ Extract Real Text & Notes</span>
                   </>
                 )}
               </button>
