@@ -16,15 +16,20 @@ export const AppProvider = ({ children }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   
   // Modal states
-  // Central Server Host IP for Multi-PC Sync (e.g., "192.168.0.9:5050" or "localhost:5050")
+  // Central Server Host IP for Multi-PC Sync
+  const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
   const [serverHost, setServerHost] = useState(() => {
-    return localStorage.getItem('colorlab_server_host') || window.location.hostname + ':5050';
+    return localStorage.getItem('colorlab_server_host') || (isProd ? window.location.host : 'localhost:5050');
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Helper: Get full API base URL
   const getApiUrl = (endpoint) => {
-    // If running in standalone desktop app or different host
+    // If running in production web app on Render/Cloud without custom override
+    if (isProd && !localStorage.getItem('colorlab_server_host')) {
+      return endpoint;
+    }
     const host = serverHost.includes(':') ? serverHost : `${serverHost}:5050`;
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
     return `${protocol}//${host}${endpoint}`;
@@ -65,12 +70,12 @@ export const AppProvider = ({ children }) => {
         aRes.json()
       ]);
 
-      setUsers(uData);
-      setClients(cData);
-      setTasks(tData);
-      setActivities(aData);
+      setUsers(Array.isArray(uData) ? uData : []);
+      setClients(Array.isArray(cData) ? cData : []);
+      setTasks(Array.isArray(tData) ? tData : []);
+      setActivities(Array.isArray(aData) ? aData : []);
 
-      if (!currentUser && uData.length > 0) {
+      if (!currentUser && Array.isArray(uData) && uData.length > 0) {
         const savedUserId = localStorage.getItem('colorlab_active_user_id');
         const matched = uData.find(u => u.id === savedUserId);
         setCurrentUser(matched || uData[0]);
@@ -81,15 +86,22 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // 2. Real-time Socket.io Connection across LAN
+  // 2. Real-time Socket.io Connection across LAN & Cloud
   useEffect(() => {
     fetchData();
 
-    const host = serverHost.includes(':') ? serverHost : `${serverHost}:5050`;
-    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-    const socketUrl = `${protocol}//${host}`;
+    let socketUrl = undefined;
+    if (!isProd || localStorage.getItem('colorlab_server_host')) {
+      const host = serverHost.includes(':') ? serverHost : `${serverHost}:5050`;
+      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+      socketUrl = `${protocol}//${host}`;
+    }
 
-    const socket = io(socketUrl, {
+    const socket = socketUrl ? io(socketUrl, {
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      transports: ['websocket', 'polling']
+    }) : io({
       reconnectionAttempts: 10,
       reconnectionDelay: 2000,
       transports: ['websocket', 'polling']
