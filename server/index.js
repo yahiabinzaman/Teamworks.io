@@ -253,16 +253,71 @@ app.get('/api/browse-fs', (req, res) => {
       return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
     });
 
-    const parentPath = path.dirname(targetPath);
+// 8. Auto-Resolve Folder API (Matches natively picked folder names to exact /Volumes or NAS paths)
+app.get('/api/resolve-folder', (req, res) => {
+  const folderName = (req.query.name || '').trim();
+  const relativePath = (req.query.path || '').trim();
+  
+  if (!folderName) {
+    return res.status(400).json({ error: 'Folder name is required' });
+  }
 
-    res.json({
-      currentPath: targetPath,
-      parentPath: parentPath !== targetPath ? parentPath : '',
-      items
-    });
+  const isMac = os.platform() === 'darwin';
+  if (!isMac) {
+    return res.json({ resolvedPath: `\\\\COLORLAB-NAS\\COLOR LAB - NAS\\${folderName}` });
+  }
+
+  try {
+    // 1. Direct match in /Volumes
+    const directVolumePath = `/Volumes/${folderName}`;
+    if (fs.existsSync(directVolumePath)) {
+      return res.json({ resolvedPath: directVolumePath });
+    }
+
+    // 2. Search inside all mounted /Volumes
+    if (fs.existsSync('/Volumes')) {
+      const volumes = fs.readdirSync('/Volumes').filter(v => !v.startsWith('.'));
+      
+      // Check direct subfolder of each volume
+      for (const vol of volumes) {
+        const candidate = `/Volumes/${vol}/${folderName}`;
+        if (fs.existsSync(candidate)) {
+          return res.json({ resolvedPath: candidate });
+        }
+      }
+
+      // Check 2 levels deep inside volumes like 'COLOR LAB - NAS' or '990 Pro 2TB SSD' or 'Diary 2027'
+      for (const vol of volumes) {
+        const volPath = `/Volumes/${vol}`;
+        try {
+          if (fs.statSync(volPath).isDirectory()) {
+            const subdirs = fs.readdirSync(volPath).filter(s => !s.startsWith('.'));
+            for (const sub of subdirs) {
+              const deepCandidate = `/Volumes/${vol}/${sub}/${folderName}`;
+              if (fs.existsSync(deepCandidate)) {
+                return res.json({ resolvedPath: deepCandidate });
+              }
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 3. Search in User Home (Desktop, Downloads, Documents)
+    const home = os.homedir();
+    const commonHomeDirs = ['Downloads', 'Desktop', 'Documents'];
+    for (const h of commonHomeDirs) {
+      const homeCandidate = path.join(home, h, folderName);
+      if (fs.existsSync(homeCandidate)) {
+        return res.json({ resolvedPath: homeCandidate });
+      }
+    }
+
+    // Fallback: Default to standard NAS or Volume path
+    const fallbackPath = `/Volumes/COLOR LAB - NAS/${folderName}`;
+    res.json({ resolvedPath: fallbackPath, note: 'Constructed standard NAS path' });
   } catch (err) {
-    console.error('File browse error:', err);
-    res.status(500).json({ error: err.message, items: [] });
+    res.json({ resolvedPath: `/Volumes/${folderName}` });
   }
 });
 

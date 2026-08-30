@@ -28,6 +28,7 @@ export default function TaskModal() {
   const [isFileBrowserOpen, setIsFileBrowserOpen] = useState(false);
   const [fileBrowserTarget, setFileBrowserTarget] = useState('serverFolder');
   const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -208,6 +209,7 @@ export default function TaskModal() {
   };
 
   const handleBrowseFolder = async () => {
+    // 1. If inside Electron desktop app
     if (window.electronAPI && window.electronAPI.selectFolder) {
       try {
         const selected = await window.electronAPI.selectFolder();
@@ -216,12 +218,67 @@ export default function TaskModal() {
           return;
         }
       } catch (e) {
-        console.warn('Native folder picker note:', e);
+        console.warn('Native electron folder picker note:', e);
       }
     }
-    // Open visual explorer modal
-    setFileBrowserTarget('serverFolder');
-    setIsFileBrowserOpen(true);
+
+    // 2. If in modern Chrome/Edge browser (Native OS Folder Picker dialog via File System API)
+    if (window.showDirectoryPicker) {
+      try {
+        const dirHandle = await window.showDirectoryPicker({
+          mode: 'read'
+        });
+        if (dirHandle && dirHandle.name) {
+          // Resolve full /Volumes/ or NAS path using backend
+          try {
+            const res = await fetch(`http://localhost:5050/api/resolve-folder?name=${encodeURIComponent(dirHandle.name)}`);
+            const data = await res.json();
+            if (data && data.resolvedPath) {
+              setFormData(prev => ({ ...prev, serverFolder: data.resolvedPath }));
+              return;
+            }
+          } catch (err) {
+            setFormData(prev => ({ ...prev, serverFolder: `/Volumes/${dirHandle.name}` }));
+            return;
+          }
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled
+        console.warn('DirectoryPicker note:', err);
+      }
+    }
+
+    // 3. Fallback: Trigger native input with webkitdirectory
+    if (folderInputRef.current) {
+      folderInputRef.current.click();
+    } else {
+      // 4. In-App Explorer
+      setFileBrowserTarget('serverFolder');
+      setIsFileBrowserOpen(true);
+    }
+  };
+
+  const handleNativeFolderInputChange = async (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const firstFile = files[0];
+      const relPath = firstFile.webkitRelativePath || '';
+      const folderName = relPath.split('/')[0] || '';
+      if (folderName) {
+        try {
+          const res = await fetch(`http://localhost:5050/api/resolve-folder?name=${encodeURIComponent(folderName)}`);
+          const data = await res.json();
+          if (data && data.resolvedPath) {
+            setFormData(prev => ({ ...prev, serverFolder: data.resolvedPath }));
+          } else {
+            setFormData(prev => ({ ...prev, serverFolder: `/Volumes/${folderName}` }));
+          }
+        } catch (err) {
+          setFormData(prev => ({ ...prev, serverFolder: `/Volumes/${folderName}` }));
+        }
+      }
+    }
+    e.target.value = '';
   };
 
   const handleBrowseWorkingFile = async () => {
@@ -564,6 +621,14 @@ export default function TaskModal() {
             </div>
 
             <div className="flex items-center gap-2">
+              <input
+                ref={folderInputRef}
+                type="file"
+                webkitdirectory=""
+                directory=""
+                onChange={handleNativeFolderInputChange}
+                className="hidden"
+              />
               <input
                 type="text"
                 value={formData.serverFolder}
