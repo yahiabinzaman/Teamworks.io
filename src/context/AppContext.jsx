@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { initialUsers, initialClients, initialTasks, initialActivities } from '../../server/sampleData.js';
+import { initialUsers, initialClients, initialTasks, initialActivities } from '../data/sampleData.js';
 
 const AppContext = createContext();
 
