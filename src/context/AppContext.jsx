@@ -1,16 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { initialUsers, initialClients, initialTasks, initialActivities } from '../../server/sampleData.js';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [users, setUsers] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [activities, setActivities] = useState([]);
+  const [users, setUsers] = useState(initialUsers);
+  const [clients, setClients] = useState(initialClients);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [activities, setActivities] = useState(initialActivities);
+  const [toasts, setToasts] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
   
   // Active Simulated User
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(initialUsers[0]);
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'kanban', 'workload', 'clients', 'activity'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
