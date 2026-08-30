@@ -1,7 +1,8 @@
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const os = require('os');
 const http = require('http');
+const fs = require('fs');
 const { exec } = require('child_process');
 
 app.name = 'ColorLab Works';
@@ -10,94 +11,63 @@ app.setName('ColorLab Works');
 let mainWindow;
 let serverStarted = false;
 
-// Auto-start embedded background backend server if not running on 5050
-async function ensureServerRunning() {
-  if (serverStarted) return;
-  return new Promise((resolve) => {
-    const req = http.get('http://localhost:5050/api/users', (res) => {
-      resolve(true);
-    });
-    req.on('error', async () => {
-      try {
-        await import('../server/index.js');
-        serverStarted = true;
-        console.log('✅ Embedded ColorLab Server initialized on port 5050');
-      } catch (err) {
-        console.warn('Embedded server startup note:', err.message);
-      }
-      resolve(true);
-    });
-    req.setTimeout(1000, () => {
-      req.destroy();
-      resolve(false);
-    });
+// Native Folder Picker dialog
+ipcMain.handle('select-folder', async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory']
   });
-}
-
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    minWidth: 1100,
-    minHeight: 700,
-    title: 'ColorLab Works',
-    icon: path.join(__dirname, '../public/logo.png'),
-    backgroundColor: '#0c0e12',
-    titleBarStyle: os.platform() === 'darwin' ? 'hiddenInset' : 'default',
-    trafficLightPosition: { x: 16, y: 16 },
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
-      nodeIntegration: false,
-      contextIsolation: true,
-    }
-  });
-
-  const isDev = process.env.NODE_ENV === 'development' && !app.isPackaged;
-  
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:3000').catch((err) => {
-      console.warn('Could not load Vite dev server, falling back to dist/index.html:', err.message);
-      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-    });
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+    return null;
   }
+  return result.filePaths[0];
+});
 
-  // Handle render crashes or loading failures gracefully
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.warn(`Failed to load (code: ${errorCode}): ${errorDescription}`);
-    if (isDev && errorCode !== -3) { // not aborted
-      setTimeout(() => {
-        mainWindow.loadURL('http://localhost:3000').catch(() => {
-          mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-        });
-      }, 1000);
-    }
+// Native File Picker dialog
+ipcMain.handle('select-file', async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [
+      { name: 'Design Files', extensions: ['ai', 'psd', 'pdf', 'eps', 'indd', 'jpg', 'png', 'tif'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
   });
-
-  // Open external links in default browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https:') || url.startsWith('http:') || url.startsWith('smb:')) {
-      shell.openExternal(url);
-      return { action: 'deny' };
-    }
-    return { action: 'allow' };
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-}
+  if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+    return null;
+  }
+  return result.filePaths[0];
+});
 
 // OS File Launcher handler
 ipcMain.handle('open-path', async (event, filePath) => {
-  const isWin = os.platform() === 'win32';
-  let targetPath = filePath;
+  if (!filePath) return { success: false, error: 'No path provided' };
   
-  if (isWin && filePath.startsWith('smb://')) {
-    targetPath = filePath.replace(/^smb:\/\//, '\\\\').replace(/\//g, '\\');
-  } else if (!isWin && filePath.startsWith('\\\\')) {
-    targetPath = filePath.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
+  const isWin = os.platform() === 'win32';
+  let targetPath = filePath.trim();
+
+  // Smart Mac /Volumes resolver for SMB
+  if (!isWin) {
+    if (targetPath.startsWith('smb://')) {
+      const parts = targetPath.replace(/^smb:\/\/[^\/]+\//, '');
+      const candidateVolume = `/Volumes/${parts}`;
+      if (fs.existsSync(candidateVolume)) {
+        targetPath = candidateVolume;
+      }
+    } else if (targetPath.startsWith('\\\\')) {
+      const parts = targetPath.replace(/^\\\\[^\\]+\\/, '');
+      const candidateVolume = `/Volumes/${parts}`;
+      if (fs.existsSync(candidateVolume)) {
+        targetPath = candidateVolume;
+      } else {
+        targetPath = targetPath.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
+      }
+    }
+  } else {
+    // Windows UNC conversion
+    if (targetPath.startsWith('smb://')) {
+      targetPath = targetPath.replace(/^smb:\/\//, '\\\\').replace(/\//g, '\\');
+    }
   }
 
   try {

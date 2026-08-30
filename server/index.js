@@ -5,6 +5,7 @@ import cors from 'cors';
 import { exec } from 'child_process';
 import os from 'os';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { db } from './database.js';
 
@@ -132,13 +133,24 @@ app.post('/api/open-path', (req, res) => {
   let command = '';
   
   if (isMac) {
-    // If it's Windows UNC path like \\COLORLAB-NAS\..., convert to smb:// for Mac
-    if (filePath.startsWith('\\\\')) {
-      const smbPath = filePath.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
-      command = `open "${smbPath}"`;
-    } else {
-      command = `open "${filePath}"`;
+    let target = filePath.trim();
+    // If it's smb:// or \\, check if /Volumes/ has the mounted folder
+    if (target.startsWith('smb://')) {
+      const withoutSmb = target.replace(/^smb:\/\/[^\/]+\//, '');
+      const candidate = `/Volumes/${withoutSmb}`;
+      if (fs.existsSync(candidate)) {
+        target = candidate;
+      }
+    } else if (target.startsWith('\\\\')) {
+      const withoutUnc = target.replace(/^\\\\[^\\]+\\/, '');
+      const candidate = `/Volumes/${withoutUnc}`;
+      if (fs.existsSync(candidate)) {
+        target = candidate;
+      } else {
+        target = target.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
+      }
     }
+    command = `open "${target}"`;
   } else if (isWin) {
     // If it's smb:// URL on Windows, convert to UNC \\COLORLAB-NAS\...
     if (filePath.startsWith('smb://')) {

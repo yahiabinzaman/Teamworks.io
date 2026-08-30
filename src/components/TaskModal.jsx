@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { 
   X, Sparkles, FolderSync, Calendar, User, Layers, Tag, 
   FileText, Trash2, Image, Upload, Eye, CheckCircle2, 
-  Loader2, Maximize2, Paperclip, CheckSquare, Plus, ScanText
+  Loader2, Maximize2, Paperclip, CheckSquare, Plus, ScanText, FolderOpen
 } from 'lucide-react';
 import { extractWhatsAppTextFromImage } from '../utils/ocrExtractor';
 
@@ -201,6 +201,29 @@ export default function TaskModal() {
     } finally {
       setIsAnalyzing(false);
       setOcrProgressText('');
+    }
+  };
+
+  const handleBrowseFolder = async () => {
+    if (window.electronAPI && window.electronAPI.selectFolder) {
+      const selected = await window.electronAPI.selectFolder();
+      if (selected) {
+        setFormData(prev => ({ ...prev, serverFolder: selected }));
+      }
+    } else {
+      const fallback = prompt('Enter or paste exact folder path on your Mac or NAS (e.g. /Volumes/COLOR LAB - NAS/ProjectName):', formData.serverFolder || '/Volumes/COLOR LAB - NAS');
+      if (fallback !== null && fallback.trim()) {
+        setFormData(prev => ({ ...prev, serverFolder: fallback.trim() }));
+      }
+    }
+  };
+
+  const handleBrowseWorkingFile = async () => {
+    if (window.electronAPI && window.electronAPI.selectFile) {
+      const selected = await window.electronAPI.selectFile();
+      if (selected) {
+        setFormData(prev => ({ ...prev, workingFile: selected }));
+      }
     }
   };
 
@@ -462,32 +485,32 @@ export default function TaskModal() {
             </div>
           </div>
 
-          {/* Server Folder Path & Working File */}
-          <div className="space-y-1.5">
+          {/* Central Server Folder Path & Working File */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-semibold text-slate-300">
-                File Server Folder Path
+                Central Server / NAS Working Folder
               </label>
 
-              {/* Quick Drive Switcher Pills */}
+              {/* Quick Drive Presets */}
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => {
                     const clientPart = formData.client ? `/${formData.client}` : '';
-                    setFormData({ ...formData, serverFolder: `smb://COLORLAB-NAS/990 Pro 2TB SSD/Diary 2027${clientPart}` });
+                    setFormData({ ...formData, serverFolder: `/Volumes/COLOR LAB - NAS${clientPart}` });
                   }}
-                  className="px-2 py-0.5 text-[10px] rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 font-medium transition-all"
+                  className="px-2 py-0.5 text-[10px] rounded-lg bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/30 font-semibold transition-all cursor-pointer"
                 >
-                  Diary 2027
+                  NAS (Mac)
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     const clientPart = formData.client ? `/${formData.client}` : '';
-                    setFormData({ ...formData, serverFolder: `smb://COLORLAB-NAS/990 Pro 2TB SSD${clientPart}` });
+                    setFormData({ ...formData, serverFolder: `/Volumes/990 Pro 2TB SSD${clientPart}` });
                   }}
-                  className="px-2 py-0.5 text-[10px] rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 font-medium transition-all"
+                  className="px-2 py-0.5 text-[10px] rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 font-medium transition-all cursor-pointer"
                 >
                   990 Pro SSD
                 </button>
@@ -495,23 +518,42 @@ export default function TaskModal() {
                   type="button"
                   onClick={() => {
                     const clientPart = formData.client ? `/${formData.client}` : '';
-                    setFormData({ ...formData, serverFolder: `smb://COLORLAB-NAS/COLOR LAB - NAS${clientPart}` });
+                    setFormData({ ...formData, serverFolder: `/Volumes/Diary 2027${clientPart}` });
                   }}
-                  className="px-2 py-0.5 text-[10px] rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 font-medium transition-all"
+                  className="px-2 py-0.5 text-[10px] rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 font-medium transition-all cursor-pointer"
                 >
-                  COLOR LAB - NAS
+                  Diary 2027
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clientPart = formData.client ? `\\${formData.client}` : '';
+                    setFormData({ ...formData, serverFolder: `\\\\COLORLAB-NAS\\COLOR LAB - NAS${clientPart}` });
+                  }}
+                  className="px-2 py-0.5 text-[10px] rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 font-medium transition-all cursor-pointer"
+                >
+                  Windows UNC
                 </button>
               </div>
             </div>
 
-            <div className="relative">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={formData.serverFolder}
                 onChange={(e) => setFormData({ ...formData, serverFolder: e.target.value })}
-                placeholder="smb://COLORLAB-NAS/..."
-                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-cyan-300 font-mono focus:outline-none focus:border-brand-500"
+                placeholder="/Volumes/COLOR LAB - NAS/..."
+                className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-cyan-300 font-mono focus:outline-none focus:border-brand-500"
               />
+              <button
+                type="button"
+                onClick={handleBrowseFolder}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-brand-500/20 hover:bg-brand-500 text-brand-300 hover:text-white rounded-xl border border-brand-500/30 transition-all cursor-pointer shadow-sm whitespace-nowrap"
+                title="Open Mac Finder / Windows Explorer to select exact folder"
+              >
+                <FolderOpen className="w-4 h-4 text-amber-400" />
+                <span>Browse Folder</span>
+              </button>
             </div>
           </div>
 
