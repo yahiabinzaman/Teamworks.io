@@ -38,7 +38,8 @@ export default function WorkloadView() {
                   <span className="text-2xl p-2 rounded-2xl bg-white/5 border border-white/10">{user.avatar}</span>
                   <div>
                     <h3 className="text-sm font-bold text-white leading-tight">{user.name}</h3>
-                    <p className="text-[11px] text-slate-400">{user.email}</p>
+                    <p className="text-[11px] text-brand-400 font-semibold">{user.designation || user.role}</p>
+                    <p className="text-[10px] text-slate-400">{user.email}</p>
                   </div>
                 </div>
                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${

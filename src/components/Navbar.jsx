@@ -231,9 +231,9 @@ export default function Navbar() {
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 transition-all text-xs cursor-pointer"
             >
               <span className="text-base">{currentUser?.avatar || '👤'}</span>
-              <div className="text-left hidden sm:block">
-                <p className="font-semibold text-white leading-tight leading-none text-[11px]">{currentUser?.name?.split(' ')[0] || 'User'}</p>
-                <p className="text-[10px] text-slate-400 capitalize">{currentUser?.role || 'Guest'}</p>
+              <div className="text-left">
+                <p className="font-semibold text-white leading-tight text-[11px] max-w-[130px] truncate">{currentUser?.name || 'User'}</p>
+                <p className="text-[9px] text-slate-400 truncate max-w-[130px]">{currentUser?.designation || currentUser?.role || 'Guest'}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
@@ -244,11 +244,11 @@ export default function Navbar() {
                   className="fixed inset-0 z-40" 
                   onClick={() => setUserDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-64 glass-dropdown rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl">
+                <div className="absolute right-0 mt-2 w-72 glass-dropdown rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100 shadow-2xl">
                   <div className="px-3 py-2 border-b border-white/10 mb-1 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Workstation Login</p>
-                      <p className="text-xs text-slate-300">Select your active profile</p>
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Workstation Switcher</p>
+                      <p className="text-xs text-slate-300">Select your active workstation</p>
                     </div>
                     {isAdminAuthenticated && (
                       <button
@@ -259,12 +259,14 @@ export default function Navbar() {
                         title="Lock Admin Mode"
                         className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
                       >
-                        <Lock className="w-3 h-3" /> Lock
+                        <Lock className="w-3 h-3" />
+                        <span>Lock</span>
                       </button>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    {users.map(u => (
+
+                  <div className="space-y-1 max-h-72 overflow-y-auto">
+                    {users.map((u) => (
                       <button
                         key={u.id}
                         onClick={() => {
@@ -277,11 +279,11 @@ export default function Navbar() {
                             : 'hover:bg-white/5 text-slate-300'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-base">{u.avatar}</span>
-                          <div>
-                            <p className="font-medium text-white">{u.name}</p>
-                            <p className="text-[10px] text-slate-400 capitalize">{u.role}</p>
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          <span className="text-base flex-shrink-0">{u.avatar}</span>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-white leading-tight truncate">{u.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium truncate">{u.designation || u.role}</p>
                           </div>
                         </div>
                         {u.role === 'admin' ? (

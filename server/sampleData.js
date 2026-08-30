@@ -210,7 +210,7 @@ export const initialTasks = [
     client: 'Abnaul Markaz',
     clientId: 'c_2027_1',
     project: 'Diary 2027 Production',
-    assignedTo: 'Yahia (Lead Designer)',
+    assignedTo: 'Yahia Bin Zaman',
     assignedId: 'u2',
     priority: 'urgent',
     status: 'internal_review',
@@ -225,40 +225,20 @@ export const initialTasks = [
       {
         id: 'v1',
         versionNumber: 'v01',
-        uploadedBy: 'Yahia (Lead Designer)',
+        uploadedBy: 'Yahia Bin Zaman',
         uploadedAt: '2026-08-30T11:00:00Z',
-        previewUrl: sampleArtwork1,
+        previewUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1200&auto=format&fit=crop&q=80',
         comments: [
           {
             id: 'c101',
-            author: 'ColorLab Admin',
-            role: 'Admin',
-            avatar: '👨‍💼',
+            author: 'Husain Mahmud',
+            role: 'Founder',
+            avatar: '👑',
             text: 'Ensure spine width is 18mm for 300 pages inner diary.',
             xPercent: 50,
             yPercent: 50,
             createdAt: '2026-08-30T11:30:00Z',
             status: 'resolved'
-          }
-        ]
-      },
-      {
-        id: 'v2',
-        versionNumber: 'v02',
-        uploadedBy: 'Yahia (Lead Designer)',
-        uploadedAt: '2026-08-30T14:15:00Z',
-        previewUrl: sampleArtwork1_v2,
-        comments: [
-          {
-            id: 'c201',
-            author: 'ColorLab Admin',
-            role: 'Admin',
-            avatar: '👨‍💼',
-            text: 'Looks ready for client WhatsApp approval!',
-            xPercent: 50,
-            yPercent: 78,
-            createdAt: '2026-08-30T15:00:00Z',
-            status: 'open'
           }
         ]
       }
@@ -270,7 +250,7 @@ export const initialTasks = [
     client: 'Al Emdad (Munsiganj)',
     clientId: 'c_2027_8',
     project: 'Diary 2027 Production',
-    assignedTo: 'Designer 01 (Nafis)',
+    assignedTo: 'Nasrullah',
     assignedId: 'u3',
     priority: 'high',
     status: 'in_progress',
@@ -289,7 +269,7 @@ export const initialTasks = [
     client: 'Al Ahmad (Mirpur-1)',
     clientId: 'c_2027_2',
     project: 'Diary 2027 Production',
-    assignedTo: 'Designer 02 (Tariq)',
+    assignedTo: 'Shuvo',
     assignedId: 'u4',
     priority: 'medium',
     status: 'assigned',
@@ -301,11 +281,50 @@ export const initialTasks = [
     brief: 'Vector lines only in 100% K for magnesium die plate.',
     createdAt: '2026-08-30T12:00:00Z',
     versions: []
+  },
+  {
+    id: 't4',
+    title: 'Diary 2027 - Custom Ribbon & Bookmark Design',
+    client: 'Al Aman [Adabor]',
+    clientId: 'c_2027_3',
+    project: 'Diary 2027 Production',
+    assignedTo: 'Amin',
+    assignedId: 'u5',
+    priority: 'high',
+    status: 'in_progress',
+    deadline: '2026-09-04T15:00',
+    dimensions: '35 × 250 mm',
+    format: 'Photoshop (.PSD)',
+    serverFolder: 'smb://COLORLAB-NAS/990 Pro 2TB SSD/Diary 2027/Al Aman [Adabor] 27',
+    workingFile: '',
+    brief: 'Woven ribbon pattern matching leather tone.',
+    createdAt: '2026-08-30T13:00:00Z',
+    versions: []
+  },
+  {
+    id: 't5',
+    title: 'Diary 2027 - Box Packaging & Slipcase',
+    client: 'Al Anwar (Rampura)',
+    clientId: 'c_2027_4',
+    project: 'Diary 2027 Production',
+    assignedTo: 'Kawsar Ahmad',
+    assignedId: 'u6',
+    priority: 'urgent',
+    status: 'assigned',
+    deadline: '2026-09-02T19:00',
+    dimensions: 'Rigid Box 165 × 230 × 35 mm',
+    format: 'Illustrator (.AI)',
+    serverFolder: 'smb://COLORLAB-NAS/990 Pro 2TB SSD/Diary 2027/Al Anwar (Rampura) 27',
+    workingFile: '',
+    brief: 'Magnetic closure rigid box template.',
+    createdAt: '2026-08-30T14:00:00Z',
+    versions: []
   }
 ];
 
 export const initialActivities = [
-  { id: 'a1', time: '10:00 AM', user: 'ColorLab Admin', text: 'Configured Diary 2027 NAS production server' },
-  { id: 'a2', time: '11:15 AM', user: 'Yahia (Lead Designer)', text: 'Uploaded Diary 2027 Cover v02 for Abnaul Markaz' },
-  { id: 'a3', time: '02:00 PM', user: 'ColorLab Admin', text: 'Assigned Inner Pages & Grid to Nafis' }
+  { id: 'a1', time: '10:00 AM', user: 'Husain Mahmud', text: 'Configured Diary 2027 NAS production server' },
+  { id: 'a2', time: '11:15 AM', user: 'Yahia Bin Zaman', text: 'Uploaded Diary 2027 Cover v02 for Abnaul Markaz' },
+  { id: 'a3', time: '02:00 PM', user: 'Husain Mahmud', text: 'Assigned Inner Pages & Grid to Nasrullah' },
+  { id: 'a4', time: '03:30 PM', user: 'Shuvo', text: 'Prepared Emboss Plate Dieline for Al Ahmad' }
 ];

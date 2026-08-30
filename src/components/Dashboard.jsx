@@ -123,15 +123,13 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold tracking-tight text-white">
                 {isDesigner ? `Workstation: ${currentUser?.name}` : `Welcome, ${currentUser?.name}`}
               </h1>
-              {currentUser?.role === 'admin' ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Studio Admin
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                  Designer Workspace
-                </span>
-              )}
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                currentUser?.role === 'admin'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  : 'bg-brand-500/20 text-brand-300 border-brand-500/30'
+              }`}>
+                {currentUser?.designation || (currentUser?.role === 'admin' ? 'Founder & Executive Director' : 'Designer Workspace')}
+              </span>
             </div>
             <p className="text-xs text-slate-400">
               {showPersonalView 
