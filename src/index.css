@@ -9,42 +9,54 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, sans-serif;
     letter-spacing: -0.011em;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
 
-/* Light Theme Overrides */
-.light-theme {
-  background-color: #f4f6fb !important;
+/* ==========================================================================
+   LIGHT THEME (Apple macOS Studio Light System)
+   ========================================================================== */
+.light-theme,
+.light-theme body {
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
 .light-theme * {
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 .light-theme .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
 
 .light-theme .glass-dropdown {
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
-  color: #0f172a;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12) !important;
+  color: #0f172a !important;
 }
 
 .light-theme .bg-dark-base {
-  background-color: #f4f6fb !important;
+  background-color: #f1f5f9 !important;
 }
 
-.light-theme .bg-dark-surface {
+.light-theme .bg-dark-surface,
+.light-theme .bg-dark-surface\/40,
+.light-theme .bg-dark-surface\/60,
+.light-theme .bg-dark-surface\/80,
+.light-theme .bg-dark-surface\/90 {
   background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
 }
 
-.light-theme .text-white {
+/* Light Mode Text High-Contrast Colors */
+.light-theme .text-white,
+.light-theme .text-slate-100,
+.light-theme .text-slate-200 {
   color: #0f172a !important;
 }
 
@@ -56,26 +68,99 @@
   color: #64748b !important;
 }
 
+.light-theme .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.light-theme .text-amber-400,
+.light-theme .text-amber-300,
+.light-theme .text-amber-200 {
+  color: #b45309 !important;
+}
+
+.light-theme .text-cyan-300,
+.light-theme .text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+.light-theme .text-emerald-300,
+.light-theme .text-emerald-400,
+.light-theme .text-emerald-200 {
+  color: #047857 !important;
+}
+
+.light-theme .text-indigo-300,
+.light-theme .text-indigo-400 {
+  color: #4338ca !important;
+}
+
+.light-theme .text-rose-400,
+.light-theme .text-rose-300 {
+  color: #be123c !important;
+}
+
+.light-theme .text-brand-300,
+.light-theme .text-brand-400 {
+  color: #0071e3 !important;
+}
+
+/* Light Mode Inputs & Buttons */
+.light-theme input,
+.light-theme select,
+.light-theme textarea {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.light-theme input::placeholder,
+.light-theme textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
 .light-theme .bg-white\/\[0\.05\],
 .light-theme .bg-white\/\[0\.04\],
 .light-theme .bg-white\/\[0\.03\],
 .light-theme .bg-white\/5 {
-  background-color: rgba(0, 0, 0, 0.04) !important;
+  background-color: #f1f5f9 !important;
 }
 
 .light-theme .hover\:bg-white\/\[0\.08\]:hover,
 .light-theme .hover\:bg-white\/10:hover,
 .light-theme .hover\:bg-white\/5:hover {
-  background-color: rgba(0, 0, 0, 0.08) !important;
+  background-color: #e2e8f0 !important;
 }
 
-.light-theme .border-white\/10,
-.light-theme .border-white\/5,
-.light-theme .border-white\/20 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+.light-theme .bg-cyan-500\/15 {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
 }
 
-/* Apple-style Custom Scrollbar */
+.light-theme .bg-emerald-500\/15 {
+  background-color: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.light-theme .bg-amber-500\/15,
+.light-theme .bg-amber-500\/20 {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+
+.light-theme .bg-rose-500\/20 {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+}
+
+.light-theme .bg-brand-500\/15,
+.light-theme .bg-brand-500\/20 {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+}
+
+/* ==========================================================================
+   Apple-style Custom Scrollbar
+   ========================================================================== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -102,7 +187,9 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Glassmorphism Classes (Dark Default) */
+/* ==========================================================================
+   Dark Default Panels
+   ========================================================================== */
 .glass-panel {
   background: rgba(20, 23, 31, 0.75);
   backdrop-filter: blur(16px);
@@ -111,7 +198,7 @@
 }
 
 .glass-dropdown {
-  background: rgba(26, 30, 41, 0.95);
+  background: rgba(26, 30, 41, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.12);

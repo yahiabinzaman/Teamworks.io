@@ -47,13 +47,21 @@ function MainContent() {
   );
 }
 
+function AppContent() {
+  const { theme } = useApp();
+
+  return (
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-[#f1f5f9] text-slate-900' : 'bg-[#0c0e12] text-slate-100'} selection:bg-brand-500 selection:text-white transition-colors duration-200`}>
+      <Navbar />
+      <MainContent />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AppProvider>
-      <div className="min-h-screen bg-[#0c0e12] text-slate-100 selection:bg-brand-500 selection:text-white">
-        <Navbar />
-        <MainContent />
-      </div>
+      <AppContent />
     </AppProvider>
   );
 }

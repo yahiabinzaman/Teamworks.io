@@ -114,14 +114,14 @@ export default function TaskModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl rounded-3xl bg-dark-surface border border-white/15 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl rounded-3xl bg-dark-surface border border-white/15 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-dark-card">
+        <div className="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between bg-dark-card flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <img 
-              src="/logo.png" 
+              src="./logo.png" 
               alt="ColorLab" 
               className="w-8 h-8 rounded-xl object-cover border border-white/15 shadow-sm"
             />
@@ -134,14 +134,14 @@ export default function TaskModal() {
           </div>
           <button
             onClick={() => setIsTaskModalOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-all"
+            className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
           
           {/* Title */}
           <div>
