@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Sparkles, FolderSync, Calendar, User, Layers, Tag, FileText } from 'lucide-react';
+import { X, Sparkles, FolderSync, Calendar, User, Layers, Tag, FileText, Trash2 } from 'lucide-react';
 
 export default function TaskModal() {
   const { 
@@ -9,6 +9,7 @@ export default function TaskModal() {
     editingTask, 
     createTask, 
     updateTask, 
+    deleteTask,
     users, 
     clients 
   } = useApp();
@@ -422,20 +423,40 @@ export default function TaskModal() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => setIsTaskModalOpen(false)}
-              className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-xl shadow-glow transition-all"
-            >
-              {editingTask?.id ? 'Save Changes' : 'Create & Assign Task'}
-            </button>
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10">
+            {editingTask?.id ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`⚠️ Are you sure you want to remove "${formData.title}"?`)) {
+                    deleteTask(editingTask.id);
+                    setIsTaskModalOpen(false);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Remove Work</span>
+              </button>
+            ) : (
+              <div></div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsTaskModalOpen(false)}
+                className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-xl shadow-glow transition-all cursor-pointer"
+              >
+                {editingTask?.id ? 'Save Changes' : 'Create & Assign Task'}
+              </button>
+            </div>
           </div>
 
         </form>

@@ -29,6 +29,22 @@ app.get('/api/users', (req, res) => {
   res.json(db.getUsers());
 });
 
+app.post('/api/users', (req, res) => {
+  const newUser = db.addUser(req.body);
+  io.emit('user:created', newUser);
+  res.json(newUser);
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  const removed = db.removeUser(req.params.id);
+  if (removed) {
+    io.emit('user:deleted', req.params.id);
+    res.json({ success: true, removed });
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
+});
+
 // 2. Clients
 app.get('/api/clients', (req, res) => {
   res.json(db.getClients());

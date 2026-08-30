@@ -9,13 +9,20 @@ import ActivityFeed from './components/ActivityFeed';
 import TaskModal from './components/TaskModal';
 import ReviewPlayer from './components/ReviewPlayer';
 import ServerSettingsModal from './components/ServerSettingsModal';
-import ToastContainer from './components/ToastContainer';
+import AdminLoginModal from './components/AdminLoginModal';
+import TeamManagementModal from './components/TeamManagementModal';
 
 function MainContent() {
-  const { activeTab } = useApp();
+  const { 
+    activeTab, 
+    isAdminModalOpen, 
+    setIsAdminModalOpen, 
+    isTeamModalOpen, 
+    setIsTeamModalOpen 
+  } = useApp();
 
   return (
-    <main className="max-w-[1700px] mx-auto px-4 sm:px-6 py-6 min-h-[calc(100vh-64px)]">
+    <main className="max-w-[1750px] mx-auto px-3 sm:px-6 py-6 min-h-[calc(100vh-64px)]">
       {activeTab === 'dashboard' && <Dashboard />}
       {activeTab === 'kanban' && <KanbanBoard />}
       {activeTab === 'workload' && <WorkloadView />}
@@ -26,6 +33,14 @@ function MainContent() {
       <TaskModal />
       <ReviewPlayer />
       <ServerSettingsModal />
+      <AdminLoginModal 
+        isOpen={isAdminModalOpen} 
+        onClose={() => setIsAdminModalOpen(false)} 
+      />
+      <TeamManagementModal 
+        isOpen={isTeamModalOpen} 
+        onClose={() => setIsTeamModalOpen(false)} 
+      />
       <ToastContainer />
     </main>
   );

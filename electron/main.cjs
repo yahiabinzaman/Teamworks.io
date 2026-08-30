@@ -91,28 +91,29 @@ function createWindow() {
 
 // OS File Launcher handler
 ipcMain.handle('open-path', async (event, filePath) => {
-  const isMac = os.platform() === 'darwin';
   const isWin = os.platform() === 'win32';
-  let command = '';
-
-  if (isMac) {
-    if (filePath.startsWith('\\\\')) {
-      const smbPath = filePath.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
-      command = `open "${smbPath}"`;
-    } else {
-      command = `open "${filePath}"`;
-    }
-  } else if (isWin) {
-    if (filePath.startsWith('smb://')) {
-      const uncPath = filePath.replace(/^smb:\/\//, '\\\\').replace(/\//g, '\\');
-      command = `explorer "${uncPath}"`;
-    } else {
-      command = `explorer "${filePath}"`;
-    }
-  } else {
-    command = `xdg-open "${filePath}"`;
+  let targetPath = filePath;
+  
+  if (isWin && filePath.startsWith('smb://')) {
+    targetPath = filePath.replace(/^smb:\/\//, '\\\\').replace(/\//g, '\\');
+  } else if (!isWin && filePath.startsWith('\\\\')) {
+    targetPath = filePath.replace(/\\/g, '/').replace(/^\/\//, 'smb://');
   }
 
+  try {
+    if (targetPath.startsWith('http://') || targetPath.startsWith('https://')) {
+      await shell.openExternal(targetPath);
+      return { success: true };
+    }
+    const openErr = await shell.openPath(targetPath);
+    if (!openErr) {
+      return { success: true };
+    }
+  } catch (e) {
+    console.warn('shell.openPath note:', e.message);
+  }
+
+  const command = isWin ? `explorer.exe "${targetPath}"` : `open "${targetPath}"`;
   return new Promise((resolve) => {
     exec(command, (err) => {
       if (err) {

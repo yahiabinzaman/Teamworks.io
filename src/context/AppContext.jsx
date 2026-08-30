@@ -12,13 +12,57 @@ export const AppProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   
-  // Active Simulated User
+  // Theme Engine (Dark vs Light)
+  const [theme, setTheme] = useState(() => localStorage.getItem('colorlab_theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
+    localStorage.setItem('colorlab_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Active User / Workstation
   const [currentUser, setCurrentUser] = useState(initialUsers[0]);
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'kanban', 'workload', 'clients', 'activity'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
-  // Modal states
+  // Designer Personal Workspace vs Studio Overview Toggle
+  const [dashboardMode, setDashboardMode] = useState('my_tasks'); // 'my_tasks' | 'studio'
+
+  // Admin Authentication & Modals
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return sessionStorage.getItem('colorlab_admin_auth') === 'true';
+  });
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+
+  const loginAdmin = (pin) => {
+    if (pin === '1234' || pin === 'admin') {
+      setIsAdminAuthenticated(true);
+      sessionStorage.setItem('colorlab_admin_auth', 'true');
+      showToast('🔓 Admin mode activated! Full studio control unlocked.', 'success');
+      return true;
+    }
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+    sessionStorage.removeItem('colorlab_admin_auth');
+    const firstDesigner = users.find(u => u.role !== 'admin') || users[0];
+    setCurrentUser(firstDesigner);
+    showToast('🔒 Logged out of Admin mode', 'info');
+  };
+
+  // Task & Review Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -95,7 +139,6 @@ export const AppProvider = ({ children }) => {
       }
     } catch (err) {
       console.warn('Central server sync note:', err.message);
-      // Keep initial instant seed data active
     }
   };
 
@@ -139,61 +182,106 @@ export const AppProvider = ({ children }) => {
       setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
     });
 
-    socket.on('task:deleted', (deletedId) => {
-      setTasks(prev => prev.filter(t => t.id !== deletedId));
-      showToast('🗑️ Task removed', 'info');
+    socket.on('task:deleted', (taskId) => {
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    });
+
+    socket.on('user:created', (newUser) => {
+      setUsers(prev => {
+        if (prev.some(u => u.id === newUser.id)) return prev;
+        return [...prev, newUser];
+      });
+    });
+
+    socket.on('user:deleted', (userId) => {
+      setUsers(prev => prev.filter(u => u.id !== userId));
     });
 
     socket.on('client:created', (newClient) => {
-      setClients(prev => [...prev, newClient]);
-      showToast(`🏢 Client added: "${newClient.name}"`, 'success');
+      setClients(prev => [newClient, ...prev]);
     });
 
-    socket.on('activity:new', (activity) => {
-      setActivities(prev => [activity, ...prev.slice(0, 49)]);
+    socket.on('activity:new', (newAct) => {
+      if (newAct) {
+        setActivities(prev => [newAct, ...prev]);
+      }
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+    return () => socket.disconnect();
+  }, [serverHost]);
 
-  // 3. API Actions
+  // 3. User & Team Management Actions
+  const addUser = async (newUser) => {
+    setUsers(prev => [...prev, newUser]);
+    try {
+      await fetch(getApiUrl('/api/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+    } catch (err) {
+      console.warn('addUser note:', err.message);
+    }
+  };
+
+  const removeUser = async (userId) => {
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    try {
+      await fetch(getApiUrl(`/api/users/${userId}`), { method: 'DELETE' });
+    } catch (err) {
+      console.warn('removeUser note:', err.message);
+    }
+  };
+
+  // 4. Task Management Actions
   const createTask = async (taskData) => {
     try {
       const res = await fetch(getApiUrl('/api/tasks'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...taskData, creator: currentUser?.name || 'Admin' })
+        body: JSON.stringify(taskData)
       });
-      const data = await res.json();
-      return data;
+      const newTask = await res.json();
+      setTasks(prev => [newTask, ...prev]);
+      showToast(`✅ Created "${newTask.title}"`, 'success');
+      return newTask;
     } catch (err) {
-      showToast('Failed to create task', 'error');
-      console.error(err);
+      // Local optimistic fallback
+      const localTask = {
+        ...taskData,
+        id: 't_' + Date.now(),
+        createdAt: new Date().toISOString(),
+        versions: []
+      };
+      setTasks(prev => [localTask, ...prev]);
+      showToast(`Created task locally`, 'info');
+      return localTask;
     }
   };
 
-  const updateTask = async (id, updates) => {
+  const updateTask = async (taskId, updates) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
     try {
-      const res = await fetch(getApiUrl(`/api/tasks/${id}`), {
+      const res = await fetch(getApiUrl(`/api/tasks/${taskId}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...updates, updatedBy: currentUser?.name || 'User' })
+        body: JSON.stringify(updates)
       });
-      const data = await res.json();
-      return data;
+      return await res.json();
     } catch (err) {
-      showToast('Failed to update task', 'error');
-      console.error(err);
+      console.warn('Task updated locally');
     }
   };
 
-  const deleteTask = async (id) => {
+  const deleteTask = async (taskId) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    showToast('🗑️ Work removed from studio', 'info');
     try {
-      await fetch(getApiUrl(`/api/tasks/${id}`), { method: 'DELETE' });
+      await fetch(getApiUrl(`/api/tasks/${taskId}`), {
+        method: 'DELETE'
+      });
     } catch (err) {
-      showToast('Failed to delete task', 'error');
+      console.warn('Task removed locally');
     }
   };
 
@@ -242,14 +330,26 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // 5. Universal OS File & Network NAS Launcher
   const openLocalPath = async (filePath) => {
+    if (!filePath) return;
     try {
-      showToast(`📂 Opening: ${filePath}`, 'info');
-      // If running inside Electron desktop app
+      // Determine if on Windows or Mac
+      const isWin = typeof navigator !== 'undefined' && navigator.platform?.toLowerCase().includes('win');
+      let displayPath = filePath;
+      if (isWin && filePath.startsWith('smb://')) {
+        displayPath = filePath.replace(/^smb:\/\//, '\\\\').replace(/\//g, '\\');
+      }
+
+      showToast(`📂 Opening: ${displayPath}`, 'info');
+
+      // If running inside native Electron desktop app
       if (window.electronAPI && window.electronAPI.openPath) {
         window.electronAPI.openPath(filePath);
         return;
       }
+
+      // If running in browser, call local Express server OS Bridge
       const res = await fetch(getApiUrl('/api/open-path'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -257,10 +357,18 @@ export const AppProvider = ({ children }) => {
       });
       const result = await res.json();
       if (!result.success) {
-        showToast(result.message, 'warning');
+        // Provide copy to clipboard fallback for Windows network explorer
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(displayPath);
+          showToast(`📋 Copied Network Path to Clipboard: ${displayPath}`, 'info');
+        }
       }
     } catch (err) {
-      showToast('Could not reach OS bridge launcher', 'error');
+      // Direct copy fallback
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(filePath);
+        showToast(`📋 Copied Path: ${filePath}`, 'info');
+      }
     }
   };
 
@@ -272,6 +380,10 @@ export const AppProvider = ({ children }) => {
   const activeReviewTask = tasks.find(t => t.id === reviewTaskId) || null;
 
   const selectUser = (user) => {
+    if (user?.role === 'admin' && !isAdminAuthenticated) {
+      setIsAdminModalOpen(true);
+      return;
+    }
     setCurrentUser(user);
     if (user) localStorage.setItem('colorlab_active_user_id', user.id);
   };
@@ -284,12 +396,25 @@ export const AppProvider = ({ children }) => {
       activities,
       currentUser,
       setCurrentUser: selectUser,
+      addUser,
+      removeUser,
       activeTab,
       setActiveTab,
       searchQuery,
       setSearchQuery,
       statusFilter,
       setStatusFilter,
+      dashboardMode,
+      setDashboardMode,
+      theme,
+      toggleTheme,
+      isAdminAuthenticated,
+      loginAdmin,
+      logoutAdmin,
+      isAdminModalOpen,
+      setIsAdminModalOpen,
+      isTeamModalOpen,
+      setIsTeamModalOpen,
       isTaskModalOpen,
       setIsTaskModalOpen,
       editingTask,

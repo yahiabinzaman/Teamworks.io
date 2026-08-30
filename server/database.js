@@ -43,6 +43,27 @@ class Database {
     return this.data.users;
   }
 
+  addUser(userData) {
+    const newUser = {
+      ...userData,
+      id: userData.id || 'u_' + Date.now(),
+      activeTasks: 0
+    };
+    this.data.users.push(newUser);
+    this.save();
+    return newUser;
+  }
+
+  removeUser(userId) {
+    const index = this.data.users.findIndex(u => u.id === userId);
+    if (index !== -1) {
+      const removed = this.data.users.splice(index, 1)[0];
+      this.save();
+      return removed;
+    }
+    return null;
+  }
+
   getClients() {
     return this.data.clients;
   }
