@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import confetti from 'canvas-confetti';
 import { 
   X, 
   CheckCircle2, 
@@ -82,12 +81,7 @@ export default function ReviewPlayer() {
 
   const handleApprove = () => {
     updateTask(activeReviewTask.id, { status: 'approved' });
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-    showToast('🎉 Proof Approved! Task moved to Approved stage.', 'success');
+    showToast('✨ Proof Approved! Task moved to Approved stage.', 'success');
   };
 
   const handleRequestRevision = () => {

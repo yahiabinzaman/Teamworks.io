@@ -3443,7 +3443,7 @@
       "assignedTo": "Kawsar Ahmad",
       "assignedId": "u6",
       "priority": "urgent",
-      "status": "assigned",
+      "status": "internal_review",
       "deadline": "2026-09-02T19:00",
       "dimensions": "Rigid Box 165 × 230 × 35 mm",
       "format": "Illustrator (.AI)",
@@ -3455,6 +3455,78 @@
     }
   ],
   "activities": [
+    {
+      "id": "a_1788114489608",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Box Packaging & Slipcase\" status to INTERNAL_REVIEW"
+    },
+    {
+      "id": "a_1788114488306",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Emboss Plate & Dieline\" status to ASSIGNED"
+    },
+    {
+      "id": "a_1788114485727",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Emboss Plate & Dieline\" status to IN_PROGRESS"
+    },
+    {
+      "id": "a_1788114485000",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Custom Ribbon & Bookmark Design\" status to IN_PROGRESS"
+    },
+    {
+      "id": "a_1788114484341",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Inner Pages & Calendar Grid\" status to IN_PROGRESS"
+    },
+    {
+      "id": "a_1788114483399",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Inner Pages & Calendar Grid\" status to INTERNAL_REVIEW"
+    },
+    {
+      "id": "a_1788114482566",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Custom Ribbon & Bookmark Design\" status to ASSIGNED"
+    },
+    {
+      "id": "a_1788114481625",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Box Packaging & Slipcase\" status to CLIENT_REVIEW"
+    },
+    {
+      "id": "a_1788114480828",
+      "time": "12:28 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Box Packaging & Slipcase\" status to INTERNAL_REVIEW"
+    },
+    {
+      "id": "a_1788114479775",
+      "time": "12:27 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Box Packaging & Slipcase\" status to ASSIGNED"
+    },
+    {
+      "id": "a_1788114477638",
+      "time": "12:27 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Box Packaging & Slipcase\" status to IN_PROGRESS"
+    },
+    {
+      "id": "a_1788114475621",
+      "time": "12:27 AM",
+      "user": "User",
+      "text": "Moved \"Diary 2027 - Emboss Plate & Dieline\" status to BACKLOG"
+    },
     {
       "id": "a_1788114401829",
       "time": "12:26 AM",
