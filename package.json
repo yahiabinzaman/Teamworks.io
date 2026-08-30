@@ -62,15 +62,21 @@
       "icon": "public/logo.png"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "public/logo.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "ColorLab Works"
+      "shortcutName": "ColorLab Works",
+      "uninstallDisplayName": "ColorLab Works"
     }
   }
 }
