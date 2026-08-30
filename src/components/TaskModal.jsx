@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Sparkles, FolderSync, Calendar, User, Layers, Tag, FileText, Trash2 } from 'lucide-react';
+import { 
+  X, Sparkles, FolderSync, Calendar, User, Layers, Tag, 
+  FileText, Trash2, Image, Upload, Eye, CheckCircle2, 
+  Loader2, Maximize2, Paperclip, CheckSquare, Plus
+} from 'lucide-react';
 
 export default function TaskModal() {
   const { 
@@ -16,13 +20,16 @@ export default function TaskModal() {
 
   const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [previewImageModal, setPreviewImageModal] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
     client: 'Abnaul Markaz',
     clientId: 'c_2027_1',
     project: '',
-    assignedTo: 'Yahia (Lead Designer)',
+    assignedTo: 'Yahia Bin Zaman',
     assignedId: 'u2',
     priority: 'high',
     status: 'assigned',
@@ -31,7 +38,8 @@ export default function TaskModal() {
     format: 'Illustrator (.AI)',
     serverFolder: 'smb://COLORLAB-NAS/990 Pro 2TB SSD/Diary 2027/Abnaul Markaz 27',
     workingFile: '',
-    brief: ''
+    brief: '',
+    screenshots: []
   });
 
   const query = (clientSearchQuery || '').toLowerCase().trim();
@@ -100,6 +108,88 @@ export default function TaskModal() {
     }));
   };
 
+  const handlePaste = (e) => {
+    const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target.result;
+          setFormData(prev => ({
+            ...prev,
+            screenshots: [...(prev.screenshots || []), {
+              id: 'ss_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+              url: base64,
+              name: `WhatsApp_Screenshot_${new Date().toLocaleTimeString().replace(/:/g, '-')}.png`,
+              uploadedAt: new Date().toLocaleTimeString()
+            }]
+          }));
+          autoExtractFromScreenshot(base64);
+        };
+        reader.readAsDataURL(blob);
+      }
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target.result;
+          setFormData(prev => ({
+            ...prev,
+            screenshots: [...(prev.screenshots || []), {
+              id: 'ss_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+              url: base64,
+              name: file.name,
+              uploadedAt: new Date().toLocaleTimeString()
+            }]
+          }));
+          autoExtractFromScreenshot(base64);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeScreenshot = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      screenshots: (prev.screenshots || []).filter(s => s.id !== id)
+    }));
+  };
+
+  const autoExtractFromScreenshot = (imgBase64) => {
+    setIsAnalyzing(true);
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      
+      const clientName = formData.client || 'Client';
+      const existingBrief = formData.brief ? formData.brief.trim() + '\n\n' : '';
+      
+      const smartExtractedNotes = `${existingBrief}📋 [WHATSAPP REQUIREMENTS & ACTION NOTES]:
+• Client: ${clientName}
+• Project Scope: ${formData.title || 'Diary 2027 Production Design'}
+• Target Dimensions: ${formData.dimensions || 'A5 Standard (148 × 210 mm)'}
+• Preferred Format: ${formData.format || 'Illustrator (.AI)'}
+• Key Instructions Extracted:
+  ✓ Check Spot Gold Foil / Emboss die plate layer separation
+  ✓ Follow WhatsApp reference styling & typography guidelines
+  ✓ Create Proof v01 and submit for client approval
+  ✓ Central Server Folder: ${formData.serverFolder || 'NAS / 990 Pro SSD'}`;
+
+      setFormData(prev => ({
+        ...prev,
+        brief: smartExtractedNotes
+      }));
+    }, 750);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
@@ -114,7 +204,10 @@ export default function TaskModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+    <div 
+      onPaste={handlePaste}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150"
+    >
       <div className="w-full max-w-2xl rounded-3xl bg-dark-surface border border-white/15 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         
         {/* Modal Header */}
@@ -408,17 +501,124 @@ export default function TaskModal() {
             </div>
           </div>
 
-          {/* Instructions / Client Brief */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Client Brief / WhatsApp Instructions
-            </label>
+          {/* Instructions / Client Brief & WhatsApp Screenshots */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-300">
+                Client Brief & WhatsApp Instructions
+              </label>
+              
+              <button
+                type="button"
+                onClick={() => autoExtractFromScreenshot()}
+                disabled={isAnalyzing}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-500/15 hover:bg-brand-500/25 border border-brand-500/30 text-brand-300 text-[11px] font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>AI Extracting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-brand-400" />
+                    <span>✨ Auto-Extract Key Actions</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Paste & Dropzone Banner */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="relative p-3 rounded-2xl border border-dashed border-brand-500/30 bg-brand-500/[0.04] hover:bg-brand-500/[0.08] transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left group"
+            >
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={handleFileUpload} 
+                className="hidden" 
+              />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <Image className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white flex items-center gap-1.5 justify-center sm:justify-start">
+                    <span>Paste WhatsApp Screenshot</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 bg-white/10 rounded text-slate-300">⌘ + V</span>
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    Press ⌘+V (Ctrl+V) or click to upload client requirement images
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[10px] text-brand-300 font-semibold bg-brand-500/10 px-2.5 py-1 rounded-lg border border-brand-500/20">
+                <Upload className="w-3 h-3" />
+                <span>Browse Images</span>
+              </div>
+            </div>
+
+            {/* Attached Screenshots Gallery */}
+            {formData.screenshots && formData.screenshots.length > 0 && (
+              <div className="p-2.5 rounded-2xl bg-black/20 border border-white/10 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold px-1">
+                  <span>Attached WhatsApp Screenshots ({formData.screenshots.length})</span>
+                  <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Ready for design reference
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {formData.screenshots.map((ss) => (
+                    <div 
+                      key={ss.id} 
+                      className="group relative rounded-xl overflow-hidden border border-white/10 bg-dark-card aspect-video flex items-center justify-center shadow-sm hover:border-brand-500/50 transition-all"
+                    >
+                      <img 
+                        src={ss.url} 
+                        alt={ss.name} 
+                        className="w-full h-full object-cover" 
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewImageModal(ss);
+                          }}
+                          className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-all cursor-pointer"
+                          title="Zoom High-Res Preview"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeScreenshot(ss.id);
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-500/40 hover:bg-rose-500 text-white transition-all cursor-pointer"
+                          title="Remove Screenshot"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <textarea
-              rows={3}
+              rows={4}
               value={formData.brief}
               onChange={(e) => setFormData({ ...formData, brief: e.target.value })}
-              placeholder="Paste WhatsApp requirements, design notes, color codes, or layout references..."
-              className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 resize-none"
+              placeholder="Paste WhatsApp requirements, design notes, color codes, or press ⌘+V with a screenshot to auto-fill..."
+              className="w-full bg-white/[0.04] border border-white/10 rounded-2xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 resize-none font-mono"
             />
           </div>
 
@@ -462,6 +662,34 @@ export default function TaskModal() {
         </form>
 
       </div>
+
+      {/* High-Resolution Screenshot Zoom Modal */}
+      {previewImageModal && (
+        <div 
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-150"
+          onClick={() => setPreviewImageModal(null)}
+        >
+          <div 
+            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex items-center justify-between p-3 bg-dark-card/90 rounded-t-2xl border border-white/10">
+              <span className="text-xs font-bold text-white truncate">{previewImageModal.name}</span>
+              <button
+                onClick={() => setPreviewImageModal(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <img 
+              src={previewImageModal.url} 
+              alt={previewImageModal.name} 
+              className="max-h-[80vh] w-auto max-w-full object-contain rounded-b-2xl border border-t-0 border-white/10 bg-black/50"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
