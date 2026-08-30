@@ -73,10 +73,7 @@ export default function Navbar() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold tracking-tight text-white text-sm">ColorLab</span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                  WORKS
-                </span>
+                <span className="font-bold tracking-tight text-white text-sm">ColorLab Works</span>
               </div>
               <button
                 onClick={() => setIsSettingsOpen(true)}
