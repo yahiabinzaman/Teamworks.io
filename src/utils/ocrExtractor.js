@@ -1,22 +1,23 @@
 import Tesseract from 'tesseract.js';
 
 /**
- * Perform real OCR on image (supports English + Bengali + numbers)
- * Filters out WhatsApp UI junk (timestamps, status, battery, buttons)
- * and formats only meaningful design instructions.
+ * Perform real OCR on image supporting Bengali (বাংলা) + English + Numbers
+ * Uses local fast Bengali trained data from /tessdata/ben.traineddata.gz
  */
 export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
   try {
-    if (onProgress) onProgress('Scanning screenshot text...');
+    if (onProgress) onProgress('বাংলা ও ইংরেজি টেক্সট স্ক্যান করা হচ্ছে...');
 
+    // Recognize both Bengali (ben) and English (eng)
     const result = await Tesseract.recognize(
       imageSrc,
-      'eng',
+      'ben+eng',
       {
+        langPath: '/tessdata',
         logger: (m) => {
           if (m.status === 'recognizing text' && onProgress) {
             const pct = Math.round((m.progress || 0) * 100);
-            onProgress(`Scanning image: ${pct}%`);
+            onProgress(`পড়া হচ্ছে: ${pct}%`);
           }
         }
       }
@@ -27,7 +28,7 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
       return {
         success: false,
         rawText: '',
-        structuredNotes: '⚠️ No readable text detected in screenshot.'
+        structuredNotes: '⚠️ স্ক্রিনশটে কোনো স্পষ্ট টেক্সট পাওয়া যায়নি।'
       };
     }
 
@@ -35,10 +36,11 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
     const noisePatterns = [
       /^[0-9:\sAPMapm.\/,-]+$/, // pure timestamps/numbers like "11:17", "5.37 pm"
       /^(today|yesterday|online|typing|last seen|forwarded|message|chat|status|calls|search|whatsapp)$/i,
+      /^(আজকে|কালকে|অনলাইন|মেসেজ|ফরোয়ার্ড|টাইপিং)$/i,
       /^(type a message|send|camera|gallery|audio|location|contact|document)$/i,
       /^[0-9]{1,3}%\s*(battery)?/i, // "98%", "100%"
       /^(5g|4g|lte|volte|wifi|kb\/s|mb\/s|am|pm)$/i,
-      /^[^\w\u0980-\u09FF]+$/ // pure punctuation/symbols
+      /^[^\w\u0980-\u09FF]+$/ // pure punctuation/symbols with no letters or Bengali characters
     ];
 
     // Process and filter raw lines
@@ -46,27 +48,31 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
     const validLines = [];
 
     for (let line of rawLines) {
-      // Remove leading/trailing quotes, ticks, timestamps
+      // Remove leading/trailing quotes, ticks, system punctuation
       line = line
-        .replace(/^[\s\-_~|=>✓•*#]+/, '')
-        .replace(/[\s\-_~|=>✓•*#]+$/, '')
+        .replace(/^[\s\-_~|=>✓•*#@&$;:.,!?]+/, '')
+        .replace(/[\s\-_~|=>✓•*#@&$;:.,!?]+$/, '')
         .replace(/\b\d{1,2}:\d{2}\s?(am|pm)?\b/gi, '') // strip embedded times like "11:17 am"
         .trim();
 
-      if (line.length < 3) continue;
+      // Skip lines with less than 2 meaningful characters unless it's a known short code
+      if (line.length < 2) continue;
+
+      // Check if line contains any valid Bengali or alphanumeric character
+      const hasContent = /[\u0980-\u09FFa-zA-Z0-9]/.test(line);
+      if (!hasContent) continue;
 
       const isNoise = noisePatterns.some(p => p.test(line));
       if (!isNoise) {
-        // avoid duplicate lines
         if (!validLines.includes(line)) {
           validLines.push(line);
         }
       }
     }
 
-    // Detect specifications
+    // Detect specifications in both English & Bengali
     const dimRegex = /(\d{2,4}\s?[xX×*]\s?\d{2,4}\s?(mm|cm|px|inch|in)?)|(A[3456]|Legal|Letter)|(\d+\s?(mm|cm|inch)\s?spine)/gi;
-    const colorRegex = /(gold\s?foil|silver\s?foil|spot\s?uv|emboss|deboss|navy\s?blue|royal\s?blue|matt\s?lam|gloss\s?lam|leather\s?texture|cmyk|pantone)/gi;
+    const effectRegex = /(gold\s?foil|silver\s?foil|spot\s?uv|emboss|deboss|navy\s?blue|royal\s?blue|matt\s?lam|gloss\s?lam|leather\s?texture|গোল্ড\s?ফয়েল|এমবস|স্পট\s?ইউভি|লেদার)/gi;
 
     const detectedDimensions = [];
     const detectedEffects = [];
@@ -75,8 +81,8 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
       const dimMatch = line.match(dimRegex);
       if (dimMatch) detectedDimensions.push(...dimMatch);
 
-      const colMatch = line.match(colorRegex);
-      if (colMatch) detectedEffects.push(...colMatch);
+      const effectMatch = line.match(effectRegex);
+      if (effectMatch) detectedEffects.push(...effectMatch);
     });
 
     const uniqueDims = Array.from(new Set(detectedDimensions));
@@ -86,11 +92,11 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
     let structuredNotes = `📌 Client Requirements:\n`;
 
     if (validLines.length > 0) {
-      validLines.slice(0, 8).forEach(pt => {
+      validLines.slice(0, 10).forEach(pt => {
         structuredNotes += `• ${pt}\n`;
       });
     } else {
-      structuredNotes += `• ${rawText.replace(/\n+/g, ' ').slice(0, 150)}\n`;
+      structuredNotes += `• ${rawText.replace(/\n+/g, ' ').slice(0, 200)}\n`;
     }
 
     if (uniqueDims.length > 0 || uniqueEffects.length > 0) {
@@ -115,7 +121,7 @@ export async function extractWhatsAppTextFromImage(imageSrc, onProgress) {
     return {
       success: false,
       rawText: '',
-      structuredNotes: `⚠️ Could not parse text automatically. Please refer to attached screenshot.`
+      structuredNotes: `⚠️ OCR ত্রুটি: টেক্সট পড়া যায়নি (${err.message})।`
     };
   }
 }
