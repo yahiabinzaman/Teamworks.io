@@ -10,6 +10,8 @@
     "start": "concurrently \"node server/index.js\" \"vite --port 3000 --host\"",
     "electron:dev": "concurrently \"node server/index.js\" \"vite --port 3000\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "vite build && electron-builder",
+    "electron:build:mac": "vite build && electron-builder --mac",
+    "electron:build:win": "vite build && electron-builder --win",
     "electron:pack": "electron-builder --dir",
     "build": "vite build",
     "preview": "vite preview"
@@ -46,14 +48,29 @@
     "directories": {
       "output": "release"
     },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "server/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "asar": true,
     "mac": {
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"],
+      "target": ["dmg", "zip", "dir"],
       "icon": "public/logo.png"
     },
     "win": {
       "target": ["nsis", "portable"],
       "icon": "public/logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ColorLab Works"
     }
   }
 }

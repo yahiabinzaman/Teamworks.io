@@ -19,22 +19,31 @@ export const AppProvider = ({ children }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   
   // Modal states
-  // Central Server Host IP for Multi-PC Sync
-  const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewTaskId, setReviewTaskId] = useState(null);
+
+  // Central 24/7 Cloud & LAN Sync Engine
+  const isDesktop = typeof window !== 'undefined' && (window.electronAPI?.isDesktopApp || window.location.protocol === 'file:');
+  const DEFAULT_CLOUD_HOST = 'teamworks-io.onrender.com';
 
   const [serverHost, setServerHost] = useState(() => {
-    return localStorage.getItem('colorlab_server_host') || (isProd ? window.location.host : 'localhost:5050');
+    const saved = localStorage.getItem('colorlab_server_host');
+    if (saved) return saved;
+    if (isDesktop) return DEFAULT_CLOUD_HOST;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'localhost:5050';
+    return window.location.host || DEFAULT_CLOUD_HOST;
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Helper: Get full API base URL
   const getApiUrl = (endpoint) => {
-    // If running in production web app on Render/Cloud without custom override
-    if (isProd && !localStorage.getItem('colorlab_server_host')) {
+    if (!isDesktop && window.location.hostname.includes('onrender.com') && !localStorage.getItem('colorlab_server_host')) {
       return endpoint;
     }
-    const host = serverHost.includes(':') ? serverHost : `${serverHost}:5050`;
-    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = serverHost.includes(':') ? serverHost : (serverHost.includes('onrender.com') ? serverHost : `${serverHost}:5050`);
+    const protocol = (host.includes('onrender.com') || window.location.protocol === 'https:') ? 'https:' : 'http:';
     return `${protocol}//${host}${endpoint}`;
   };
 
@@ -43,7 +52,7 @@ export const AppProvider = ({ children }) => {
     const cleaned = newHost.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
     localStorage.setItem('colorlab_server_host', cleaned);
     setServerHost(cleaned);
-    showToast(`🔄 Connected to server: ${cleaned}`, 'success');
+    showToast(`🔄 Connected to: ${cleaned}`, 'success');
     window.location.reload();
   };
 
@@ -73,10 +82,11 @@ export const AppProvider = ({ children }) => {
         aRes.json()
       ]);
 
-      setUsers(Array.isArray(uData) ? uData : []);
-      setClients(Array.isArray(cData) ? cData : []);
-      setTasks(Array.isArray(tData) ? tData : []);
-      setActivities(Array.isArray(aData) ? aData : []);
+      if (Array.isArray(uData) && uData.length > 0) setUsers(uData);
+      if (Array.isArray(cData) && cData.length > 0) setClients(cData);
+      if (Array.isArray(tData) && tData.length > 0) setTasks(tData);
+      if (Array.isArray(aData) && aData.length > 0) setActivities(aData);
+      setIsConnected(true);
 
       if (!currentUser && Array.isArray(uData) && uData.length > 0) {
         const savedUserId = localStorage.getItem('colorlab_active_user_id');
@@ -84,8 +94,8 @@ export const AppProvider = ({ children }) => {
         setCurrentUser(matched || uData[0]);
       }
     } catch (err) {
-      console.warn('Central server connecting/offline:', err.message);
-      setIsConnected(false);
+      console.warn('Central server sync note:', err.message);
+      // Keep initial instant seed data active
     }
   };
 
@@ -93,19 +103,17 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     fetchData();
 
-    let socketUrl = undefined;
-    if (!isProd || localStorage.getItem('colorlab_server_host')) {
+    let socketUrl;
+    if (serverHost.includes('onrender.com')) {
+      socketUrl = `https://${serverHost}`;
+    } else {
       const host = serverHost.includes(':') ? serverHost : `${serverHost}:5050`;
       const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
       socketUrl = `${protocol}//${host}`;
     }
 
-    const socket = socketUrl ? io(socketUrl, {
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-      transports: ['websocket', 'polling']
-    }) : io({
-      reconnectionAttempts: 10,
+    const socket = io(socketUrl, {
+      reconnectionAttempts: 20,
       reconnectionDelay: 2000,
       transports: ['websocket', 'polling']
     });

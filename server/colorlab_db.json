@@ -3322,6 +3322,26 @@
   ],
   "tasks": [
     {
+      "title": "Cover Deisgn",
+      "client": "Al Aman (Adabor)",
+      "clientId": "c_2027_3",
+      "project": "",
+      "assignedTo": "Designer 01 (Nafis)",
+      "assignedId": "u3",
+      "priority": "urgent",
+      "status": "assigned",
+      "deadline": "2026-09-02T16:03",
+      "dimensions": "1080 × 1080 px (1:1)",
+      "format": "Photoshop (.PSD)",
+      "serverFolder": "smb://COLORLAB-NAS/990 Pro 2TB SSD/Diary 2027/Al Aman [Adabor] 27",
+      "workingFile": "",
+      "brief": "",
+      "creator": "Yahia (Lead Designer)",
+      "id": "t_1788106017178",
+      "createdAt": "2026-08-30T16:06:57.178Z",
+      "versions": []
+    },
+    {
       "id": "t1",
       "title": "Diary 2027 - Front & Back Cover Design",
       "client": "Abnaul Markaz",
@@ -3330,7 +3350,7 @@
       "assignedTo": "Yahia (Lead Designer)",
       "assignedId": "u2",
       "priority": "urgent",
-      "status": "internal_review",
+      "status": "revision",
       "deadline": "2026-08-31T17:00",
       "dimensions": "Diary Standard (A5 / 148 × 210 mm)",
       "format": "Illustrator (.AI) + Spot Gold Foil Layer",
@@ -3356,6 +3376,17 @@
               "yPercent": 50,
               "createdAt": "2026-08-30T11:30:00Z",
               "status": "resolved"
+            },
+            {
+              "text": "ene color change hobe",
+              "xPercent": 37,
+              "yPercent": 63,
+              "author": "ColorLab Admin",
+              "role": "admin",
+              "avatar": "👨‍💼",
+              "id": "c_1788105671635",
+              "createdAt": "2026-08-30T16:01:11.635Z",
+              "status": "open"
             }
           ]
         },
@@ -3375,11 +3406,34 @@
               "xPercent": 50,
               "yPercent": 78,
               "createdAt": "2026-08-30T15:00:00Z",
+              "status": "resolved"
+            },
+            {
+              "text": "2026 hobe",
+              "xPercent": 46,
+              "yPercent": 65,
+              "author": "ColorLab Admin",
+              "role": "admin",
+              "avatar": "👨‍💼",
+              "id": "c_1788105721798",
+              "createdAt": "2026-08-30T16:02:01.798Z",
+              "status": "resolved"
+            },
+            {
+              "text": "zsxxczxczxczx",
+              "xPercent": 16,
+              "yPercent": 11,
+              "author": "Designer 01 (Nafis)",
+              "role": "designer",
+              "avatar": "🧑‍💻",
+              "id": "c_1788106060900",
+              "createdAt": "2026-08-30T16:07:40.900Z",
               "status": "open"
             }
           ]
         }
-      ]
+      ],
+      "updatedBy": "Designer 01 (Nafis)"
     },
     {
       "id": "t2",
@@ -3421,6 +3475,36 @@
     }
   ],
   "activities": [
+    {
+      "id": "a_1788106071224",
+      "time": "10:07 PM",
+      "user": "Designer 01 (Nafis)",
+      "text": "Moved \"Diary 2027 - Front & Back Cover Design\" status to REVISION"
+    },
+    {
+      "id": "a_1788106060901",
+      "time": "10:07 PM",
+      "user": "Designer 01 (Nafis)",
+      "text": "Pinned comment on v02 of \"Diary 2027 - Front & Back Cover Design\""
+    },
+    {
+      "id": "a_1788106017185",
+      "time": "10:06 PM",
+      "user": "Yahia (Lead Designer)",
+      "text": "Created new task: \"Cover Deisgn\" for Designer 01 (Nafis)"
+    },
+    {
+      "id": "a_1788105721798",
+      "time": "10:02 PM",
+      "user": "ColorLab Admin",
+      "text": "Pinned comment on v02 of \"Diary 2027 - Front & Back Cover Design\""
+    },
+    {
+      "id": "a_1788105671650",
+      "time": "10:01 PM",
+      "user": "ColorLab Admin",
+      "text": "Pinned comment on v01 of \"Diary 2027 - Front & Back Cover Design\""
+    },
     {
       "id": "a1",
       "time": "10:00 AM",
